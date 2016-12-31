@@ -3,3 +3,5 @@
 .RData
 .Ruserdata
 upload_script.R
+*_cache/
+*_files/

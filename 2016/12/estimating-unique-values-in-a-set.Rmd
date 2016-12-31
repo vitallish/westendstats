@@ -27,7 +27,7 @@ We can write this a little more succinctly:
 ### Simulation
 Let's get an idea of what the solution should look like by running a simulation. The example below will test various _S_ values between 90 and 30,000 with 1,000 simulations per _S_ size. For each size, we try to find the probability of drawing _exactly_ 88 unique samples. 
 
-```{r run_simulation, cache=TRUE}
+```{r run_simulation}
 simXgS <- function(s, t = 90, x = 88, num_samples = 1000) {
   # Calculates the probability of drawing x unique samples
   out <- c()
@@ -60,17 +60,23 @@ $$ P(s|x,t) = \frac{P(x|s,t)}{\sum_s{P(x|s,t)}}$$
 
 The graph below shows the scaled probability of the true number of unique values in the original sample. The labeled vertical line shows the best guess for the value of _s_ based off the simulations.
 
-```{r graph_sim, echo = F}
-df_sim %>% 
+```{r graph_sim, echo = FALSE}
+df_sim %>%
   ggplot(aes(S, pdf)) +
   geom_point() +
   geom_vline(xintercept = best_S, color = "red") +
-  geom_text( x = best_S, y = .0005, label = paste0(" S = ", format(best_S,big.mark = ",")), hjust = 0) + 
+  geom_text(
+    x = best_S,
+    y = .0005,
+    label = paste0(" s = ", format(best_S, big.mark = ",")),
+    hjust = 0
+  ) +
   labs(title = "Scaled probability of the true number of unique values (s)",
        x = "s",
        y = "P(s|x,t)")
 ```
-```{r sim2, cache=TRUE, include=FALSE}
+
+```{r sim2, include=FALSE, cache = TRUE}
 set.seed(2)
 bag2 <- seq(from = 90, to = 3000, by = 50) # S Values
 best_Ss <- sapply(1:100, function(x) {
@@ -101,7 +107,7 @@ ggplot(data = data.frame(best_Ss), aes(x = best_Ss)) +
 
 Now let's see if we can calculate $P(s|x,t)$ without using simulation. We can start with Bayes Rule:
 $$ P(s|x,t) = \frac{P(x|s,t)P(s|t)}{P(x|t)}$$
-We can  calculate the formula for $P(x|s,t)$ by definition:
+We can  calculate the formula for $P(x|s,t)$ by using combinatorics:
 $$ P(x|s,t) \propto \frac{s!}{s^{x}(s-x)!}*\frac{\binom{t-1}{t-x}}{s^{t-x}}$$
 
 Note the 'proportional' sign that's used instead of an 'equal' sign. I will show why this is not important shortly. Let's look at $P(s|t)$. First we notice that _s_ is entirely independent of _t_. (I can use a plate of any size for testing, it probably relates to the capabilities of the device measuring the wells, not _s_). Additionally, we can  give _s_ a uniform distribution; It's equally likely to be any number in the range we are testing.
@@ -112,17 +118,17 @@ Where _q_ equals the whole range we are testing _s_ over (`length(bag)`).
 
 Lastly we turn to $P(x|t)$, which is the marginal distribution of _x_ over all of the possible values of _s_. 
 
-$$\begin{aligned}P(x|t) &=  \int_s{P(x|s,t)P(s|t)ds} \\
-& = \int_s{P(x|s,t)\frac{1}{q}ds} \\
-& = \frac{1}{q}\int_s{P(x|s,t)ds} \\
+$$\begin{aligned}P(x|t) &=  \int_s{P(x|s,t)P(s|t)ds} \\\\
+& = \int_s{P(x|s,t)\frac{1}{q}ds} \\\\
+& = \frac{1}{q}\int_s{P(x|s,t)ds} \\\\\
 & = \frac{1}{q}\sum_s{P(x|s,t)}
 \end{aligned}
 $$
 Now let's put it all together:
 $$\begin{aligned}
-P(s|x,t) &= \frac{P(x|s,t)P(s|t)}{P(x|t)} \\
+P(s|x,t) &= \frac{P(x|s,t)P(s|t)}{P(x|t)} \\\\
 \\
-&= \frac{P(x|s,t)\frac{1}{q}}{\frac{1}{q}\sum_s{P(x|s,t)}}\\
+&= \frac{P(x|s,t)\frac{1}{q}}{\frac{1}{q}\sum_s{P(x|s,t)}}\\\\
 \\
 & = \frac{P(x|s,t)}{\sum_s{P(x|s,t)}}
 \end{aligned}
@@ -135,7 +141,7 @@ This result accomplished two goals:
 
 Below I've written a function for calculating $P(x|s,t)$ where _t_ = `plates` and _x_ = `observed_unique`. 
 
-```{r, echo=T}
+```{r, echo=TRUE}
 probXgS <- function(s,
                     t = 90,
                     x = 88) {
@@ -156,7 +162,7 @@ best_S_calc <-
 
 The graphs show that the analytic solution (red) correctly approximates the probability distribution of the simulation. The most likely value for $s$ is also shown.
 
-```{r, echo = F}
+```{r, echo = FALSE}
 df_sim %>%
   ggplot(aes(x = S)) +
   geom_point(aes(y = pdf), color = "black") +
@@ -176,7 +182,7 @@ df_sim %>%
 
 Lastly, we can look at the performance to the simulation more directly by plotting the residuals:
 
-```{r, echo=F}
+```{r, echo=FALSE}
 df_sim %>% 
   ggplot(aes(calc_pdf, calc_pdf-pdf)) +
   geom_point() + 
@@ -188,9 +194,9 @@ The residuals are fairly constant for all calculated values. There is naturally 
 
 ### Conclusion
 
-This post shows my method for solving these sort of problems. Doing simulations like I showed in the first part really makes the problem, and statistics, come alive. Once I have a good understanding of the actual problem, I like to think of an analytic solution that can be generalized to other forms of the same problem. Below I show some example where the number of plates and the unique observations differs from those of the original problem.
+This post shows my method for solving these sort of problems. Doing simulations like I showed in the first part really makes the problem, and statistics, come alive. Once I have a good understanding of the actual problem, I like to think of an analytic solution that can be generalized to other forms of the same problem. Below I show some example where the number of plates and the unique observations differs from those of the original problem. You can also fine all the code for this blog post on [my GitHub](https://github.com/vitallish/westendstats/tree/master/2016/12).
 
-```{r sim_3, echo = F, cache = T}
+```{r sim_3, echo = FALSE}
 set.seed(3)
 bag <- seq(from = 90, to = 200, by = 1) # S Values
 
@@ -223,7 +229,7 @@ df2_sim %>%
        y = "P(s|x,t)")
 ```
 
-```{r sim4, echo=F, cache = T}
+```{r sim4, echo=FALSE}
 set.seed(4)
 bag <- seq(from = 50, to = 120, by = 1) # S Values
 
