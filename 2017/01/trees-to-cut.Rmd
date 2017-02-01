@@ -84,11 +84,13 @@ sim_function <- function(samp_size = 1000, cut_ratio = .1, d = NULL) {
 
 I won't discuss the code above in detail, but the most important part is the call to the `tree` function (from the `tree` library). This function will find the optimal point to split the `cont_var` that best predicts `val`. The last rows output the results of testing for $\alpha = 0.05$ which means that our false positive rate should be controlled at 5%. The block of code below will check the significance form 1000 simulations to see if the false positive rates stays at that number.
 
-```{r run_simulation}
+```{r run_simulation, results = 'asis'}
 full_sim <- sapply(1:1000, function(x)
   sim_function(1000, cut_ratio = .1))
 
-pander::pander(rowMeans(full_sim))
+out <- data.frame(`Precent Significant` = rowMeans(full_sim))
+
+pander::pander(out, style = 'rmarkdown')
 ```
 
 Oh oh... Look at that rate of finding a significant result with the `Dichotomized` method! It's 10x the prespecified $\alpha$ level! On the other hand, using the continuous value  keeps us at the prespecified false positive rate. 
@@ -118,7 +120,10 @@ d$val <- scale(d$val)
 real_sim <- sapply(1:1000, function(x)
   sim_function(50, .1, d))
 
-pander::pander(rowMeans(real_sim))
+out <- data.frame(`Precent Significant` = rowMeans(real_sim))
+
+pander::pander(out, style = 'rmarkdown')
+
 ```  
 
 As you can see, we are able to detect an effect much more often when we dichotomize the variable. This shouldn't come as too much of a surprise as we are effectively sacrificing a low positive rate for a high specificity. As always, there is no such thing as a free lunch. 
