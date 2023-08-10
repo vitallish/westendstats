@@ -5,3 +5,5 @@
 upload_script.R
 *_cache/
 *_files/
+/.quarto/
+/_site/

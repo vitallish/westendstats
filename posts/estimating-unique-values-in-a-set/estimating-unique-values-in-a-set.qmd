@@ -1,0 +1,269 @@
+---
+title: "Estimating the Unique Values in a Set"
+author: "Vitaly Druker"
+date: "2016-12-01"
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+knitr::opts_chunk$set(warning = FALSE)
+knitr::opts_chunk$set(message = FALSE)
+knitr::opts_chunk$set(comment = NA)
+knitr::opts_chunk$set(results = 'asis')
+
+library(ggplot2)
+library(dplyr)
+```
+### Motivation 
+A friend asked me to help him figure out some probabilities related to microwell plates that he was analyzing in his lab.
+A [90 well plate](https://en.wikipedia.org/wiki/Microtiter_plate) was filled from a mixed sample of an unknown number of unique particles. Let's say there are a total of _s_ total particles in the original sample. My friend said that he observed 88 unique particles in the 90 well plate. His question was simple: can we estimate the number of unique particles (_s_) in the original bag?
+
+We can write this a little more succinctly: 
+
+> If we draw 90 items from a set (with replacement) and we see 88 unique items, what is the probability that the set has _s_ unique members? Can we calculate $P(s|x,t)$ where _x_ is the unique items observed out of a draw size _t_.
+
+
+### Simulation
+Let's get an idea of what the solution should look like by running a simulation. The example below will test various _S_ values between 90 and 30,000 with 1,000 simulations per _S_ size. For each size, we try to find the probability of drawing _exactly_ 88 unique samples. 
+
+```{r run_simulation}
+simXgS <- function(s, t = 90, x = 88, num_samples = 1000) {
+  # Calculates the probability of drawing x unique samples
+  out <- c()
+  for (i in 1:num_samples) {
+    samp <- sample(1:s, size = t, replace = T) # draw 90
+    v <- (length(unique(samp)) == x)
+    out <- c(out, v)
+  }
+  mean(out)
+}
+
+set.seed(1)
+bag <- seq(from = 90, to = 20000, by = 50) # S Values
+
+full_out <- sapply(bag,
+                   simXgS,
+                   t = 90,
+                   x = 88,
+                   num_samples = 1000)
+
+p_full_out <- full_out / sum(full_out)
+
+df_sim <-
+  data.frame(S = bag, pdf = p_full_out)
+best_S <- df_sim$S[which.max(df_sim$pdf)]
+```
+
+Some of you may have made the correct observation that we are actually calculating $P(x|s,t)$. That is what `full_out` represents. However, as you will see below, we can use Bayes Rule to show that this is valid when we scale by the sum of all values (`p_full_out`). In other words: 
+$$ P(s|x,t) = \frac{P(x|s,t)}{\sum_s{P(x|s,t)}}$$
+
+The graph below shows the scaled probability of the true number of unique values in the original sample. The labeled vertical line shows the best guess for the value of _s_ based off the simulations.
+
+```{r graph_sim, echo = FALSE}
+df_sim %>%
+  ggplot(aes(S, pdf)) +
+  geom_point() +
+  geom_vline(xintercept = best_S, color = "red") +
+  geom_text(
+    x = best_S,
+    y = .0005,
+    label = paste0(" s = ", format(best_S, big.mark = ",")),
+    hjust = 0
+  ) +
+  labs(title = "Scaled probability of the true number of unique values (s)",
+       x = "s",
+       y = "P(s|x,t)")
+```
+
+```{r sim2, include=FALSE, cache = FALSE}
+set.seed(2)
+bag2 <- seq(from = 90, to = 3000, by = 50) # S Values
+best_Ss <- sapply(1:100, function(x) {
+  full_out <- sapply(bag2,
+                     simXgS,
+                     t = 90,
+                     x = 88,
+                     num_samples = 1000)
+  
+  bag2[which.max(full_out)]
+})
+
+best_est <- mean(best_Ss)
+est_ci <- best_est +c(-1,1)*sd(best_Ss)/sqrt(100)*1.96
+```
+
+We can even run the simulation multiple times (code not shown) to get a better estimate of _s_. After 100 simulations, the best _s_ is **`r round(best_est)`** (95% CI [**`r round(est_ci[1])`**, **`r round(est_ci[2])`**]). The plot below shows the distribution of these values.
+
+```{r sS_hist, echo = FALSE}
+ggplot(data = data.frame(best_Ss), aes(x = best_Ss)) + 
+  geom_histogram(bins = 30) +
+  labs(x = "Best Value for S",
+       title = "Histogram of the best values for s from 100 simulations")
+
+```
+
+### Analytic Solution  
+
+Now let's see if we can calculate $P(s|x,t)$ without using simulation. We can start with Bayes Rule:
+$$ P(s|x,t) = \frac{P(x|s,t)P(s|t)}{P(x|t)}$$
+We can  calculate the formula for $P(x|s,t)$ by using combinatorics:
+$$ P(x|s,t) \propto \frac{s!}{s^{x}(s-x)!}*\frac{\binom{t-1}{t-x}}{s^{t-x}}$$
+
+Note the 'proportional' sign that's used instead of an 'equal' sign. I will show why this is not important shortly. Let's look at $P(s|t)$. First we notice that _s_ is entirely independent of _t_. (I can use a plate of any size for testing, it probably relates to the capabilities of the device measuring the wells, not _s_). Additionally, we can  give _s_ a uniform distribution; It's equally likely to be any number in the range we are testing.
+
+$$ P(s|t) = P(s) = \frac{1}{q}$$
+
+Where _q_ equals the whole range we are testing _s_ over (`length(bag)`).
+
+Lastly we turn to $P(x|t)$, which is the marginal distribution of _x_ over all of the possible values of _s_. 
+
+$$\begin{aligned}P(x|t) &=  \int_s{P(x|s,t)P(s|t)ds} \\\\
+& = \int_s{P(x|s,t)\frac{1}{q}ds} \\\\
+& = \frac{1}{q}\int_s{P(x|s,t)ds} \\\\\
+& = \frac{1}{q}\sum_s{P(x|s,t)}
+\end{aligned}
+$$
+Now let's put it all together:
+$$\begin{aligned}
+P(s|x,t) &= \frac{P(x|s,t)P(s|t)}{P(x|t)} \\\\
+\\
+&= \frac{P(x|s,t)\frac{1}{q}}{\frac{1}{q}\sum_s{P(x|s,t)}}\\\\
+\\
+& = \frac{P(x|s,t)}{\sum_s{P(x|s,t)}}
+\end{aligned}
+$$
+This result accomplished two goals:
+
+1. It justifies dividing by the sum of all the probabilities (as we did in the first section). 
+
+2. It means that our analytic solution to $P(x|s,t)$ can be proportional to the true value (as long as it does not contain an _s_). Any proportions like that will act as the $\frac{1}{q}$ did and get cancelled out. 
+
+Below I've written a function for calculating $P(x|s,t)$ where _t_ = `plates` and _x_ = `observed_unique`. 
+
+```{r, echo=TRUE}
+probXgS <- function(s,
+                    t = 90,
+                    x = 88) {
+  m_vs <- t - x
+  prod(s:(s - (x - 1)) / s) *
+    choose(x + m_vs - 1, m_vs) *
+    1 / s ^ m_vs
+}
+
+comp_out <- sapply(bag, probXgS, x = 88, t = 90)
+p_comp_out <- comp_out / sum(comp_out)
+
+df_sim$calc_pdf <- p_comp_out
+best_S_calc <-
+  df_sim$S[which.max(df_sim$calc_pdf)]
+
+```
+
+The graphs show that the analytic solution (red) correctly approximates the probability distribution of the simulation. The most likely value for $s$ is also shown.
+
+```{r, echo = FALSE}
+df_sim %>%
+  ggplot(aes(x = S)) +
+  geom_point(aes(y = pdf), color = "black") +
+  geom_line(aes(y = calc_pdf), color = "red", size = 1) +
+  geom_vline(xintercept = best_S_calc, color = "blue") +
+  geom_text(
+    x = best_S_calc,
+    y = .0005,
+    label = paste0(" S = ", format(best_S_calc, big.mark = ",")),
+    hjust = 0
+  ) +
+  labs(title = "Plotting the simulated and calculated values for P(s|x,t)",
+       x = "S",
+       y = "P(s|x,t)")
+
+```
+
+Lastly, we can look at the performance to the simulation more directly by plotting the residuals:
+
+```{r, echo=FALSE}
+df_sim %>% 
+  ggplot(aes(calc_pdf, calc_pdf-pdf)) +
+  geom_point() + 
+  geom_smooth(method = 'loess') +
+  labs(main = "Residuals showing accuracy of calculations to simulated values")
+
+```
+The residuals are fairly constant for all calculated values. There is naturally bunching near 0 because of chosen values for _s_.
+
+### Conclusion
+
+This post shows my method for solving these sort of problems. Doing simulations like I showed in the first part really makes the problem, and statistics, come alive. Once I have a good understanding of the actual problem, I like to think of an analytic solution that can be generalized to other forms of the same problem. Below I show some example where the number of plates and the unique observations differs from those of the original problem. You can also fine all the code for this blog post on [my GitHub](https://github.com/vitallish/westendstats/tree/master/2016/12).
+
+```{r sim_3, echo = FALSE}
+set.seed(3)
+bag <- seq(from = 90, to = 200, by = 1) # S Values
+
+full_out <- sapply(bag,
+                     simXgS,
+                     t = 150,
+                     x = 88,
+                     num_samples = 1000)
+
+# Scale the outputs os the probability sums to 1
+p_full_out <- full_out/sum(full_out)
+
+df2_sim <- 
+  data.frame(S = bag, pdf_1 = p_full_out) 
+
+comp_out <- sapply(bag, probXgS, t = 150, 
+                   x = 88)
+p_comp_out <- comp_out/sum(comp_out)
+df2_sim$calc_pdf_1 <- p_comp_out
+
+best_S_calc_1 <- df2_sim$S[which.max(df2_sim$calc_pdf_1)]
+df2_sim %>% 
+  ggplot(aes(x = S)) +
+  geom_point(aes(y = pdf_1), color = "black") +
+  geom_line(aes(y = calc_pdf_1), color = "red", size = 1)+
+  geom_vline(xintercept = best_S_calc_1, color = "blue") +
+  geom_text( x = best_S_calc_1, y = .0005, label = paste0(" S = ", format(best_S_calc_1,big.mark = ",")), hjust = 0) +
+  labs(title = "Simulated vs Calculated values for t = 150, x = 88",
+       x = "S",
+       y = "P(s|x,t)")
+```
+
+```{r sim4, echo=FALSE}
+set.seed(4)
+bag <- seq(from = 50, to = 120, by = 1) # S Values
+
+full_out <- sapply(bag,
+                     simXgS,
+                     t = 90,
+                     x = 50,
+                     num_samples = 1000)
+
+# Scale the outputs os the probability sums to 1
+p_full_out <- full_out/sum(full_out)
+
+df2_sim <- 
+  data.frame(S = bag, pdf_1 = p_full_out) 
+
+comp_out <- sapply(bag, probXgS, t = 90, 
+                   x = 50)
+p_comp_out <- comp_out/sum(comp_out)
+df2_sim$calc_pdf_1 <- p_comp_out
+
+best_S_calc_1 <- df2_sim$S[which.max(df2_sim$calc_pdf_1)]
+df2_sim %>% 
+  ggplot(aes(x = S)) +
+  geom_point(aes(y = pdf_1), color = "black") +
+  geom_line(aes(y = calc_pdf_1), color = "red", size = 1)+
+  geom_vline(xintercept = best_S_calc_1, color = "blue") +
+  geom_text( x = best_S_calc_1, y = .0005, label = paste0(" S = ", format(best_S_calc_1,big.mark = ",")), hjust = 0) +
+  labs(title = "Simulated vs Calculated values for t = 90, x = 50",
+       x = "S",
+       y = "P(s|x,t)")
+
+
+```
+
+
+
+
+
