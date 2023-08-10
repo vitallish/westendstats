@@ -7,3 +7,4 @@ upload_script.R
 *_files/
 /.quarto/
 /_site/
+/.vscode/
