@@ -1,0 +1,129 @@
+---
+title: "Cutting with Trees"
+author: "Vitaly Druker"
+date: "2017-01-01"
+---
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+knitr::opts_chunk$set(warning = FALSE)
+knitr::opts_chunk$set(message = FALSE)
+knitr::opts_chunk$set(comment = NA)
+knitr::opts_chunk$set(results = 'asis')
+knitr::opts_chunk$set(tidy = FALSE)
+
+library(dplyr)
+library(tree)
+library(ggplot2)
+library(pander)
+library(readr)
+
+```
+
+### Motivation  
+
+As [I have mentioned before](http://www.westendstats.com/2016/11/conditional-mle-variance/), the most useful information statistics can provide us is a measure of uncertainty in a result. Arguably the most common way that researchers accomplish this is with [the p-value](http://blog.minitab.com/blog/adventures-in-statistics-2/how-to-correctly-interpret-p-values). Whatever your personal feelings about the use of p-values, it's important to understand and recognize specific instances when they can be misused. 
+One way that I've seen this happen is while splitting a continuous 'control' variable into a categorical variable. While there can be [justification for using this method](https://www.ma.utexas.edu/users/mks/statmistakes/dividingcontinuousintocategories.html), it's generally [considered a bad idea](http://onlinelibrary.wiley.com/doi/10.1002/sim.2331/full).
+
+Below, I will use a simple example to both show the issue with and the attraction to using regression trees to dichotomize a continuous control variable. Before we get to the simulation, let's imagine an example when a researcher might want to split a continuous variable. 
+
+### Example  
+
+Let's imagine a researcher is testing a therapy, recorded in the column `cat` as "A" or "B". The researcher is trying to understand if this particular therapy has an effect on a clinical outcome, such as hospital length of stay, recorded in column `val`. However, there is a third variable that may influence how well the treatment affects patients (such as age) recorded in `cont_cat`. The researcher wants build a multi-variate linear regression to control for `cont_cat`. However, the `cont_cat` data is complex, maybe it's easier to just split the data based off of the outcome variable. "This could take of non-linearity and call for a simpler interpretation," the researcher thinks. 
+
+### Simulation  
+
+While it sounds like an attractive proposition, it can get the researcher into trouble. The function below offers a simulation of what the researcher proposed:
+
+```{r simulation_code}
+sim_function <- function(samp_size = 1000, cut_ratio = .1, d = NULL) {
+  # If data is not provided, simulate it
+  if (is.null(d)){
+    d <-
+      data.frame(
+        cat = rep(c('A', 'B'), samp_size/2),
+        cont_cat = rnorm(samp_size),
+        val = rlnorm(samp_size)
+      )
+  }else{
+  # If data is provided, sample it
+    d <- d[sample( 1:nrow(d), samp_size),]
+  }
+  
+  # Calculate the optimal cut point
+  r_cut <-
+    tree(val ~ cont_cat,
+         data = d,
+         mindev = 0,
+         mincut = samp_size*cut_ratio)$frame$splits[1, 'cutleft'] %>%
+    substring(2) %>%
+    as.numeric
+  
+  # Create high/low variable based off the cut above
+  d$cut_var <-
+    cut(
+      d$cont_cat,
+      breaks = c(min(d$cont_cat), r_cut , max(d$cont_cat)),
+      include.lowest = T,
+      labels = c('low', 'high')
+    )
+  
+  # Fit linear models
+  tree_mod <- lm(val ~ cat + cut_var, data = d)
+  cont_mod <- lm(val ~ cat + cont_cat, data = d)
+  
+  # Return values signficant at alpha = .05
+  c(
+    "Dichotomized" = summary(tree_mod)$coefficients['cut_varhigh', 'Pr(>|t|)'] < .05,
+    "Continuous" = summary(cont_mod)$coefficients['cont_cat', 'Pr(>|t|)'] < .05,
+    "Cut Value" = r_cut
+  )
+}
+``` 
+
+I won't discuss the code above in detail, but the most important part is the call to the `tree` function (from the `tree` library). This function will find the optimal point to split the `cont_var` that best predicts `val`. The last rows output the results of testing for $\alpha = 0.05$ which means that our false positive rate should be controlled at 5%. The block of code below will check the significance form 1000 simulations to see if the false positive rates stays at that number.
+
+```{r run_simulation, results = 'asis'}
+full_sim <- sapply(1:1000, function(x)
+  sim_function(1000, cut_ratio = .1))
+
+out <- data.frame(`Precent Significant` = rowMeans(full_sim))
+
+pander::pander(out, style = 'rmarkdown')
+```
+
+Oh oh... Look at that rate of finding a significant result with the `Dichotomized` method! It's 10x the prespecified $\alpha$ level! On the other hand, using the continuous value  keeps us at the prespecified false positive rate. 
+
+This example clearly shows the issues that can come from an analysis that uses this technique. We know from the simulation that there is no relationship between the `cont_val` and the outcome variable `val`. However, in the extreme example above, we find a relationship _almost 50% of the time_.
+
+### Real Data Simulation  
+
+The code below illustrates just why people do this. You can see that it is easier to find a relationship (in the case below it does actually exist).
+
+```{r ames_simulation}
+data <- read_tsv("AmesHousing.txt")
+
+d <- data %>% 
+  filter(`House Style` %in% c('1Story','2Story'),
+         `Gr Liv Area` < 4000) %>% 
+  select(cat = `House Style`,
+         cont_cat = `Lot Area`,
+         val = SalePrice)
+
+d$cat <- ifelse(d$cat == '1Story','A','B')
+
+d$cont_cat <- scale(d$cont_cat)
+d$val <- scale(d$val)
+
+
+real_sim <- sapply(1:1000, function(x)
+  sim_function(50, .1, d))
+
+out <- data.frame(`Precent Significant` = rowMeans(real_sim))
+
+pander::pander(out, style = 'rmarkdown')
+
+```  
+
+As you can see, we are able to detect an effect much more often when we dichotomize the variable. This shouldn't come as too much of a surprise as we are effectively sacrificing a low positive rate for a high specificity. As always, there is no such thing as a free lunch. 
+
+As always, you can find all of the code for this post on [github](https://github.com/vitallish/westendstats/tree/master/2017/01)
