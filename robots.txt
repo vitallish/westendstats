@@ -1,1 +1,1 @@
-Sitemap: https://vitallish.github.io/westendstats/sitemap.xml
+Sitemap: https://github.com/vitallish/westendstats/sitemap.xml
