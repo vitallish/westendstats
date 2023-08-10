@@ -8,7 +8,7 @@ knitr::opts_chunk$set(echo = TRUE)
 knitr::opts_chunk$set(warning = FALSE)
 knitr::opts_chunk$set(message = FALSE)
 knitr::opts_chunk$set(comment = NA)
-knitr::opts_chunk$set(results = 'asis')
+knitr::opts_chunk$set(results = "asis")
 knitr::opts_chunk$set(tidy = FALSE)
 
 library(dplyr)
@@ -16,7 +16,6 @@ library(tree)
 library(ggplot2)
 library(pander)
 library(readr)
-
 ```
 
 ### Motivation  
@@ -37,44 +36,45 @@ While it sounds like an attractive proposition, it can get the researcher into t
 ```{r simulation_code}
 sim_function <- function(samp_size = 1000, cut_ratio = .1, d = NULL) {
   # If data is not provided, simulate it
-  if (is.null(d)){
+  if (is.null(d)) {
     d <-
       data.frame(
-        cat = rep(c('A', 'B'), samp_size/2),
+        cat = rep(c("A", "B"), samp_size / 2),
         cont_cat = rnorm(samp_size),
         val = rlnorm(samp_size)
       )
-  }else{
-  # If data is provided, sample it
-    d <- d[sample( 1:nrow(d), samp_size),]
+  } else {
+    # If data is provided, sample it
+    d <- d[sample(seq_len(nrow(d)), samp_size), ]
   }
-  
+
   # Calculate the optimal cut point
   r_cut <-
     tree(val ~ cont_cat,
-         data = d,
-         mindev = 0,
-         mincut = samp_size*cut_ratio)$frame$splits[1, 'cutleft'] %>%
+      data = d,
+      mindev = 0,
+      mincut = samp_size * cut_ratio
+    )$frame$splits[1, "cutleft"] %>%
     substring(2) %>%
-    as.numeric
-  
+    as.numeric()
+
   # Create high/low variable based off the cut above
   d$cut_var <-
     cut(
       d$cont_cat,
-      breaks = c(min(d$cont_cat), r_cut , max(d$cont_cat)),
-      include.lowest = T,
-      labels = c('low', 'high')
+      breaks = c(min(d$cont_cat), r_cut, max(d$cont_cat)),
+      include.lowest = TRUE,
+      labels = c("low", "high")
     )
-  
+
   # Fit linear models
   tree_mod <- lm(val ~ cat + cut_var, data = d)
   cont_mod <- lm(val ~ cat + cont_cat, data = d)
-  
+
   # Return values signficant at alpha = .05
   c(
-    "Dichotomized" = summary(tree_mod)$coefficients['cut_varhigh', 'Pr(>|t|)'] < .05,
-    "Continuous" = summary(cont_mod)$coefficients['cont_cat', 'Pr(>|t|)'] < .05,
+    "Dichotomized" = summary(tree_mod)$coefficients["cut_varhigh", "Pr(>|t|)"] < .05,
+    "Continuous" = summary(cont_mod)$coefficients["cont_cat", "Pr(>|t|)"] < .05,
     "Cut Value" = r_cut
   )
 }
@@ -83,12 +83,13 @@ sim_function <- function(samp_size = 1000, cut_ratio = .1, d = NULL) {
 I won't discuss the code above in detail, but the most important part is the call to the `tree` function (from the `tree` library). This function will find the optimal point to split the `cont_var` that best predicts `val`. The last rows output the results of testing for $\alpha = 0.05$ which means that our false positive rate should be controlled at 5%. The block of code below will check the significance form 1000 simulations to see if the false positive rates stays at that number.
 
 ```{r run_simulation, results = 'asis'}
-full_sim <- sapply(1:1000, function(x)
-  sim_function(1000, cut_ratio = .1))
+full_sim <- sapply(1:1000, function(x) {
+  sim_function(1000, cut_ratio = .1)
+})
 
 out <- data.frame(`Precent Significant` = rowMeans(full_sim))
 
-pander::pander(out, style = 'rmarkdown')
+pander::pander(out, style = "rmarkdown")
 ```
 
 Oh oh... Look at that rate of finding a significant result with the `Dichotomized` method! It's 10x the prespecified $\alpha$ level! On the other hand, using the continuous value  keeps us at the prespecified false positive rate. 
@@ -102,26 +103,30 @@ The code below illustrates just why people do this. You can see that it is easie
 ```{r ames_simulation}
 data <- read_tsv("AmesHousing.txt")
 
-d <- data %>% 
-  filter(`House Style` %in% c('1Story','2Story'),
-         `Gr Liv Area` < 4000) %>% 
-  select(cat = `House Style`,
-         cont_cat = `Lot Area`,
-         val = SalePrice)
+d <- data %>%
+  filter(
+    `House Style` %in% c("1Story", "2Story"),
+    `Gr Liv Area` < 4000
+  ) %>%
+  select(
+    cat = `House Style`,
+    cont_cat = `Lot Area`,
+    val = SalePrice
+  )
 
-d$cat <- ifelse(d$cat == '1Story','A','B')
+d$cat <- ifelse(d$cat == "1Story", "A", "B")
 
 d$cont_cat <- scale(d$cont_cat)
 d$val <- scale(d$val)
 
 
-real_sim <- sapply(1:1000, function(x)
-  sim_function(50, .1, d))
+real_sim <- sapply(1:1000, function(x) {
+  sim_function(50, .1, d)
+})
 
 out <- data.frame(`Precent Significant` = rowMeans(real_sim))
 
-pander::pander(out, style = 'rmarkdown')
-
+pander::pander(out, style = "rmarkdown")
 ```  
 
 As you can see, we are able to detect an effect much more often when we dichotomize the variable. This shouldn't come as too much of a surprise as we are effectively sacrificing a low positive rate for a high specificity. As always, there is no such thing as a free lunch. 
