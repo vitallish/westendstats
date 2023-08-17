@@ -2,6 +2,7 @@
 title: "Conditional MLE Variance"
 author: "Vitaly Druker"
 date: "2016-11-01"
+categories: [R, simulation, MLE, casi]
 ---
 ### Introduction  
 The most challenging (and useful) work in statistics comes not from trying to estimate a value, but from estimating the _accuracy_ of that value. The most famous example of this is that for a normally distributed variable 

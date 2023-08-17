@@ -2,6 +2,7 @@
 title: "Cutting with Trees"
 author: "Vitaly Druker"
 date: "2017-01-01"
+categories: [CART, R, simulation, p value]
 ---
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)

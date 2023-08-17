@@ -2,6 +2,7 @@
 title: "Estimating the Unique Values in a Set"
 author: "Vitaly Druker"
 date: "2016-12-01"
+categories: [R, combinatorics, simulation]
 ---
 
 ```{r setup, include=FALSE}

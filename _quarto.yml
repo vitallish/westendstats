@@ -1,11 +1,16 @@
 project:
   type: website
+  output-dir: _site #this is default
+  preview: 
+    port: 4212
+    browser: false
 
 website:
   title: "West End Statistics"
   navbar:
     right:
       - about.qmd
+      - blog.qmd
       - icon: github
         href: https://github.com/vitallish/westendstats
       - icon: mastodon

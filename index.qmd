@@ -1,14 +1,14 @@
 ---
-title: "West End Statistics"
-listing:
-  contents: posts
-  sort: "date desc"
-  type: default
-  categories: false
-  sort-ui: false
-  filter-ui: false
+title: "Home"
 page-layout: full
-title-block-banner: true
+format: html
 ---
 
 
+<style>
+  body {
+  background-image: url("resources/try2.jpg");
+  background-size: cover;
+  background-repeat: no-repeat;
+}
+</style>
