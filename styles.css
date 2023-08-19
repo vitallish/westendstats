@@ -1,1 +1,10 @@
 /* css styles */
+
+.introtext {
+    font-size: 34pt;
+    background-color: #ffffffc0;
+  }
+
+  .quarto-title > h1.title {
+    opacity: 0 !important;
+  }

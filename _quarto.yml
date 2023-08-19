@@ -17,7 +17,7 @@ website:
         href: https://fosstodon.org/@vitaly_druker
 format:
   html:
-    theme: cosmo
+    theme: yeti
     css: styles.css
 
 execute: 
