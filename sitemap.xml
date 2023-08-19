@@ -1,27 +1,27 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   <url>
-    <loc>https://github.com/vitallish/westendstats/posts/cutting-with-trees/trees-to-cut.html</loc>
-    <lastmod>2023-08-19T11:30:01.401Z</lastmod>
+    <loc>https://test.westendstats.com/posts/cutting-with-trees/trees-to-cut.html</loc>
+    <lastmod>2023-08-19T11:55:56.967Z</lastmod>
   </url>
   <url>
-    <loc>https://github.com/vitallish/westendstats/posts/estimating-unique-values-in-a-set/estimating-unique-values-in-a-set.html</loc>
-    <lastmod>2023-08-19T11:29:59.729Z</lastmod>
+    <loc>https://test.westendstats.com/posts/estimating-unique-values-in-a-set/estimating-unique-values-in-a-set.html</loc>
+    <lastmod>2023-08-19T11:55:55.483Z</lastmod>
   </url>
   <url>
-    <loc>https://github.com/vitallish/westendstats/blog.html</loc>
-    <lastmod>2023-08-19T11:29:58.525Z</lastmod>
+    <loc>https://test.westendstats.com/blog.html</loc>
+    <lastmod>2023-08-19T11:55:54.443Z</lastmod>
   </url>
   <url>
-    <loc>https://github.com/vitallish/westendstats/index.html</loc>
-    <lastmod>2023-08-19T11:29:57.449Z</lastmod>
+    <loc>https://test.westendstats.com/index.html</loc>
+    <lastmod>2023-08-19T11:55:53.499Z</lastmod>
   </url>
   <url>
-    <loc>https://github.com/vitallish/westendstats/about.html</loc>
-    <lastmod>2023-08-19T11:29:58.877Z</lastmod>
+    <loc>https://test.westendstats.com/about.html</loc>
+    <lastmod>2023-08-19T11:55:54.751Z</lastmod>
   </url>
   <url>
-    <loc>https://github.com/vitallish/westendstats/posts/conditional-mle-variance/conditional-mle-variance.html</loc>
-    <lastmod>2023-08-19T11:30:00.649Z</lastmod>
+    <loc>https://test.westendstats.com/posts/conditional-mle-variance/conditional-mle-variance.html</loc>
+    <lastmod>2023-08-19T11:55:56.275Z</lastmod>
   </url>
 </urlset>
