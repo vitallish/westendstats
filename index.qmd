@@ -15,5 +15,5 @@ format: html
 
 
 ::: {.introtext}
-West End Statistics is a statistical consulting company focused on designing and analyzing clinical trial data. Learn more about the [our background](about.qmd) or see our [posts](blog.qmd) to learn about our research interests.
+West End Statistics is a statistical consulting company focused on designing and analyzing clinical trial data. Learn more about the [our background](about.qmd) or see our [posts](blog.qmd) to learn about our research interests. V1
 :::
