@@ -8,6 +8,7 @@ resources:
   - CNAME
 website:
   title: "West End Statistics"
+  favicon: favicon.png
   navbar:
     right:
       - about.qmd
