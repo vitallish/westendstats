@@ -2,9 +2,9 @@
   {
     "listing": "/blog.html",
     "items": [
-      "/posts/cutting-with-trees/trees-to-cut.html",
-      "/posts/estimating-unique-values-in-a-set/estimating-unique-values-in-a-set.html",
-      "/posts/conditional-mle-variance/conditional-mle-variance.html"
+      "/posts/cutting-with-trees/index.html",
+      "/posts/estimating-unique-values-in-a-set/index.html",
+      "/posts/conditional-mle-variance/index.html"
     ]
   }
 ]

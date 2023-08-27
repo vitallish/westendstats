@@ -227,9 +227,9 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <span id="cb1-25"><a href="#cb1-25" aria-hidden="true" tabindex="-1"></a>best_S <span class="ot">&lt;-</span> df_sim<span class="sc">$</span>S[<span class="fu">which.max</span>(df_sim<span class="sc">$</span>pdf)]</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <p>Some of you may have made the correct observation that we are actually calculating <span class="math inline">\(P(x|s,t)\)</span>. That is what <code>full_out</code> represents. However, as you will see below, we can use Bayes Rule to show that this is valid when we scale by the sum of all values (<code>p_full_out</code>). In other words: <span class="math display">\[ P(s|x,t) = \frac{P(x|s,t)}{\sum_s{P(x|s,t)}}\]</span></p>
 <p>The graph below shows the scaled probability of the true number of unique values in the original sample. The labeled vertical line shows the best guess for the value of <em>s</em> based off the simulations.</p>
-<p><img src="estimating-unique-values-in-a-set_files/figure-html/graph_sim-1.png" class="img-fluid" width="672"></p>
+<p><img src="index_files/figure-html/graph_sim-1.png" class="img-fluid" width="672"></p>
 <p>We can even run the simulation multiple times (code not shown) to get a better estimate of <em>s</em>. After 100 simulations, the best <em>s</em> is <strong>2006</strong> (95% CI [<strong>1968</strong>, <strong>2045</strong>]). The plot below shows the distribution of these values.</p>
-<p><img src="estimating-unique-values-in-a-set_files/figure-html/sS_hist-1.png" class="img-fluid" width="672"></p>
+<p><img src="index_files/figure-html/sS_hist-1.png" class="img-fluid" width="672"></p>
 </section>
 <section id="analytic-solution" class="level3">
 <h3 class="anchored" data-anchor-id="analytic-solution">Analytic Solution</h3>
@@ -272,16 +272,16 @@ P(s|x,t) &amp;= \frac{P(x|s,t)P(s|t)}{P(x|t)} \\\\
 <span id="cb2-14"><a href="#cb2-14" aria-hidden="true" tabindex="-1"></a>best_S_calc <span class="ot">&lt;-</span></span>
 <span id="cb2-15"><a href="#cb2-15" aria-hidden="true" tabindex="-1"></a>  df_sim<span class="sc">$</span>S[<span class="fu">which.max</span>(df_sim<span class="sc">$</span>calc_pdf)]</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <p>The graphs show that the analytic solution (red) correctly approximates the probability distribution of the simulation. The most likely value for <span class="math inline">\(s\)</span> is also shown.</p>
-<p><img src="estimating-unique-values-in-a-set_files/figure-html/unnamed-chunk-2-1.png" class="img-fluid" width="672"></p>
+<p><img src="index_files/figure-html/unnamed-chunk-2-1.png" class="img-fluid" width="672"></p>
 <p>Lastly, we can look at the performance to the simulation more directly by plotting the residuals:</p>
-<p><img src="estimating-unique-values-in-a-set_files/figure-html/unnamed-chunk-3-1.png" class="img-fluid" width="672"></p>
+<p><img src="index_files/figure-html/unnamed-chunk-3-1.png" class="img-fluid" width="672"></p>
 <p>The residuals are fairly constant for all calculated values. There is naturally bunching near 0 because of chosen values for <em>s</em>.</p>
 </section>
 <section id="conclusion" class="level3">
 <h3 class="anchored" data-anchor-id="conclusion">Conclusion</h3>
 <p>This post shows my method for solving these sort of problems. Doing simulations like I showed in the first part really makes the problem, and statistics, come alive. Once I have a good understanding of the actual problem, I like to think of an analytic solution that can be generalized to other forms of the same problem. Below I show some example where the number of plates and the unique observations differs from those of the original problem. You can also fine all the code for this blog post on <a href="https://github.com/vitallish/westendstats/tree/master/2016/12">my GitHub</a>.</p>
-<p><img src="estimating-unique-values-in-a-set_files/figure-html/sim_3-1.png" class="img-fluid" width="672"></p>
-<p><img src="estimating-unique-values-in-a-set_files/figure-html/sim4-1.png" class="img-fluid" width="672"></p>
+<p><img src="index_files/figure-html/sim_3-1.png" class="img-fluid" width="672"></p>
+<p><img src="index_files/figure-html/sim4-1.png" class="img-fluid" width="672"></p>
 
 
 </section>

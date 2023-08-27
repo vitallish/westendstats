@@ -1,27 +1,31 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   <url>
-    <loc>https://www.westendstats.com/posts/cutting-with-trees/trees-to-cut.html</loc>
-    <lastmod>2023-08-20T13:26:32.622Z</lastmod>
-  </url>
-  <url>
-    <loc>https://www.westendstats.com/posts/estimating-unique-values-in-a-set/estimating-unique-values-in-a-set.html</loc>
-    <lastmod>2023-08-20T13:26:30.818Z</lastmod>
-  </url>
-  <url>
-    <loc>https://www.westendstats.com/blog.html</loc>
-    <lastmod>2023-08-20T13:26:29.566Z</lastmod>
-  </url>
-  <url>
-    <loc>https://www.westendstats.com/index.html</loc>
-    <lastmod>2023-08-20T13:26:28.334Z</lastmod>
+    <loc>https://www.westendstats.com/wip/bayesian-power-trial/index.html</loc>
+    <lastmod>2023-08-27T01:29:14.043Z</lastmod>
   </url>
   <url>
     <loc>https://www.westendstats.com/about.html</loc>
-    <lastmod>2023-08-20T13:26:29.942Z</lastmod>
+    <lastmod>2023-08-27T01:29:12.587Z</lastmod>
   </url>
   <url>
-    <loc>https://www.westendstats.com/posts/conditional-mle-variance/conditional-mle-variance.html</loc>
-    <lastmod>2023-08-20T13:26:31.826Z</lastmod>
+    <loc>https://www.westendstats.com/posts/cutting-with-trees/index.html</loc>
+    <lastmod>2023-08-27T01:29:11.551Z</lastmod>
+  </url>
+  <url>
+    <loc>https://www.westendstats.com/posts/estimating-unique-values-in-a-set/index.html</loc>
+    <lastmod>2023-08-27T01:29:09.839Z</lastmod>
+  </url>
+  <url>
+    <loc>https://www.westendstats.com/index.html</loc>
+    <lastmod>2023-08-27T01:29:08.591Z</lastmod>
+  </url>
+  <url>
+    <loc>https://www.westendstats.com/posts/conditional-mle-variance/index.html</loc>
+    <lastmod>2023-08-27T01:29:10.755Z</lastmod>
+  </url>
+  <url>
+    <loc>https://www.westendstats.com/blog.html</loc>
+    <lastmod>2023-08-27T01:29:12.235Z</lastmod>
   </url>
 </urlset>
