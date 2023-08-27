@@ -1,0 +1,14 @@
+{
+  "hash": "c01819e9f0cfce5752ce2efde7f17b28",
+  "result": {
+    "markdown": "---\ntitle: \"Bayesian Power Trial\"\nauthor: \"Vitaly Druker\"\ndate: \"\"\ncategories: \n    - R\n    - simulation\n    - clinical trial design \n    - bayesian\n    - power calculations\ndraft: false\nbibliography: references.bib\n---\n\n\n## Overview of SPYRAL HTN-ON\n\nTry to recreate power analysis in @böhm2020 - renal denervation trial that uses this method\n\n-   Specifically the ON-MED group\n\n-   Note that in the table below I transformed the standard errors found in table 3 of the publication for the pilot study.\n\n\n    ::: {.cell}\n    \n    ```{.r .cell-code}\n    parameter_assumptions <- tibble::tribble(\n        ~trial,    ~arm,        ~basline_adjusted_mean, ~baseline_adjusted_sd, ~n,\n        \"pilot\",   \"treatment\", -8.8,                   1.8*sqrt(36),          36,\n        \"pilot\",   \"control\",   -1.8,                   1.8*sqrt(36),          36,\n        \"pivotal\", \"treatment\", -6.8,                   12,                    NA,\n        \"pivotal\", \"control\",   -1.8,                   12,                    NA\n        \n    )\n    ```\n    :::\n\n\nWeibull discount functyion parameters that were used: Shape $k = 3$, scale $\\lambda =0.25$\n\nInterim analyses will happen at 175 and 220 subjects\n\nTreatment effect defined by:\n\n$\\mu = \\mu_t - \\mu_c$\n\nTrial success criteria:\n\n$$\nP(\\mu <0 ) \\gt .975\n$$\n\nTrial futility is made by imputation of remaining subjects and if\n\n$$\nP(\\mu <0 ) \\lt .05\n$$\n\n### Trial Performance Characteristics\n\n- Overall trial pwer to detect treatment difference of -5 was 96%\n- Type I error 3%\n- Power at first and second interim looks was 89% and 94%\n\n\n## Other publications\n\n\n::: {.cell}\n\n```{.r .cell-code}\nlibrary(bayesDP) # package that was used in the clinical trial\n```\n\n::: {.cell-output .cell-output-stderr}\n```\nLoading required package: ggplot2\n```\n:::\n\n::: {.cell-output .cell-output-stderr}\n```\nLoading required package: survival\n```\n:::\n:::\n\n\n@haddad2017 for perspective from device community\n\nspecifics about dynamic borrowing @viele2014\n\ntest",
+    "supporting": [],
+    "filters": [
+      "rmarkdown/pagebreak.lua"
+    ],
+    "includes": {},
+    "engineDependencies": {},
+    "preserve": {},
+    "postProcess": true
+  }
+}
