@@ -1,0 +1,71 @@
+---
+title: "Bayesian Power Trial"
+author: "Vitaly Druker"
+date: ""
+categories: 
+    - R
+    - simulation
+    - clinical trial design 
+    - bayesian
+    - power calculations
+draft: false
+bibliography: references.bib
+---
+
+## Overview of SPYRAL HTN-ON
+
+Try to recreate power analysis in @böhm2020 - renal denervation trial that uses this method
+
+-   Specifically the ON-MED group
+
+-   Note that in the table below I transformed the standard errors found in table 3 of the publication for the pilot study.
+
+    ```{r}
+    parameter_assumptions <- tibble::tribble(
+        ~trial,    ~arm,        ~basline_adjusted_mean, ~baseline_adjusted_sd, ~n,
+        "pilot",   "treatment", -8.8,                   1.8*sqrt(36),          36,
+        "pilot",   "control",   -1.8,                   1.8*sqrt(36),          36,
+        "pivotal", "treatment", -6.8,                   12,                    NA,
+        "pivotal", "control",   -1.8,                   12,                    NA
+        
+    )
+    ```
+
+Weibull discount functyion parameters that were used: Shape $k = 3$, scale $\lambda =0.25$
+
+Interim analyses will happen at 175 and 220 subjects
+
+Treatment effect defined by:
+
+$\mu = \mu_t - \mu_c$
+
+Trial success criteria:
+
+$$
+P(\mu <0 ) \gt .975
+$$
+
+Trial futility is made by imputation of remaining subjects and if
+
+$$
+P(\mu <0 ) \lt .05
+$$
+
+### Trial Performance Characteristics
+
+- Overall trial pwer to detect treatment difference of -5 was 96%
+- Type I error 3%
+- Power at first and second interim looks was 89% and 94%
+
+
+## Other publications
+
+```{r}
+library(bayesDP) # package that was used in the clinical trial
+```
+
+@haddad2017 for perspective from device community
+
+specifics about dynamic borrowing @viele2014
+
+test

@@ -1,0 +1,153 @@
+---
+title: "Condfounding Medication Changes"
+author: "Vitaly Druker"
+date: "2023-09-01"
+draft: true
+categories: [R, simulation, clinical trial design]
+---
+
+
+
+
+```{r}
+library(ggplot2)
+library(dplyr)
+library(tidyr)
+```
+```{mermaid}
+graph TB;
+TX(Treatment) -->|α1| A2; TX -->|α2| A3;
+A1(Baseline BP)-->|β| A2(Time 1 BP); A2-->|β|A3(Time 2 BP);
+A2-->|λ|M2;
+M1(Baseline Meds) -->|γ| M2(Meds Between\nTime 1 & 2);
+M2-->|δ|A3; 
+```
+
+
+```{r}
+update_bp <- function(prior_bp,
+                      prior_meds,
+                      prior_med_effect,
+                      tx_effect) {
+    prior_bp +
+        prior_meds * prior_med_effect +
+        tx_effect
+}
+
+#' The `update_meds` function uses the `prior_bp` and `prior_meds` as a starting
+#' point for updating the number of meds taken. This function attempts to
+#' simulate a clinician observing a high BP and prescribing more meds to try to
+#' control it. Meds are either added or taken away from the number of prior
+#' meds. The entire function incorporates both $\gamma$ and $\lambda$
+#' transformations.
+#' @param prior_meds test
+update_meds <- function(prior_meds, prior_bp, prob_med_change = 1) {
+    med_difference <- dplyr::case_when(
+        prior_bp >= 160 ~ 1,
+        prior_bp >= 120 ~ 0,
+        prior_bp < 120 ~ -1
+    )
+
+    # allow randomness in medication change 
+    # when prob_med_change = 1 then everyone changes meds according to the above
+    change_meds <- rbinom(length(prior_meds), size = 1, prob = prob_med_change)
+    prior_meds + change_meds * med_difference
+}
+
+
+simulate_trial <- function(bl_bp_mean, bl_bp_sd,
+                           bl_meds_mean, bl_meds_sd,
+                           N.t, N.s,
+                           additional_med_effect,
+                           treatment_effect,
+                           sham_effect,
+                           effect_sd = 5,
+                           prob_med_change = 1,
+                           quietly = TRUE) {
+    N <- N.t + N.s
+    TX <- c(rep(1, N.t), rep(0, N.s))
+
+    # create baseline measurements
+    bl_bp <- rnorm(N, bl_bp_mean, bl_bp_sd)
+    bl_meds <- abs(round(rnorm(N, bl_meds_mean, bl_meds_sd)))
+
+    # calculate change from baseline to time1, time2 to time 1
+    tx_net_effect <- diff(c(0, treatment_effect))
+    sham_net_effect <- diff(c(0, sham_effect))
+
+    time1_effects <- rnorm(
+        n = N,
+        tx_net_effect[1] * TX + sham_net_effect[1] * (1-TX),
+        sd = effect_sd
+    )
+
+    # time1
+    time1_bp <- update_bp(
+        prior_bp = bl_bp,
+        prior_meds = bl_meds,
+        # meds do not effect time1 result
+        prior_med_effect = 0,
+        tx_effect = time1_effects
+    )
+    time1_meds <- update_meds(bl_meds,
+        time1_bp,
+        prob_med_change = prob_med_change
+    )
+    
+    time2_effects <- rnorm(
+        n = N,
+        tx_net_effect[2] * TX + sham_net_effect[2] * (1-TX),
+        sd = effect_sd
+    ) 
+    # time2
+    time2_bp <- update_bp(
+        prior_bp = time1_bp,
+        prior_meds = time1_meds - bl_meds,
+        prior_med_effect = additional_med_effect,
+        tx_effect = time2_effects
+    )
+
+    out <- tibble::tibble(
+        patientid = 1:N,
+        TX = TX,
+        bl_bp = round(bl_bp),
+        bl_meds,
+        time1_bp = round(time1_bp),
+        time1_meds,
+        time2_bp = round(time2_bp)
+    )
+
+    out
+}
+```
+
+
+
+```{r}
+
+sim_trial <- simulate_trial(
+  bl_bp_mean = 150, bl_bp_sd = 10,
+  bl_meds_mean = 3, bl_meds_sd = 0,
+  N.t = 1e4, N.s = 1e4,
+  additional_med_effect = -5, 
+  treatment_effect = c(-12, -8),
+  sham_effect = c(0,0),
+  effect_sd = 5,
+  prob_med_change = 1)
+
+```
+
+```{r}
+lm(time1_bp ~ TX + bl_meds + bl_bp, data = sim_trial)
+lm(time2_bp ~ TX + bl_bp + time1_meds, data = sim_trial)
+lm(time2_bp ~ TX + time1_bp, data = sim_trial)
+lm(time2_bp ~ TX + time1_bp + time1_meds, data = sim_trial)
+
+```
+
+```{r}
+long_sim_trial <- sim_trial |>
+  select(TX, patientid, ends_with("_bp")) |>
+  pivot_longer(ends_with("_bp")) |>
+  mutate(name = factor(name, levels = c("bl_bp", "time1_bp", "time2_bp")))
+```
