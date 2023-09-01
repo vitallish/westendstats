@@ -1,0 +1,165 @@
+---
+title: "Simple Bayesian Interim Looks"
+author: "Vitaly Druker"
+categories: [R, simulation, clinical trial design, bayesian]
+---
+
+
+
+
+## Notes
+
+Conjugate normal prior:
+
+https://people.eecs.berkeley.edu/~jordan/courses/260-spring10/lectures/lecture5.pdf
+
+
+```{r}
+true_var <- 9
+true_mean <- 1
+
+sample_data <- rnorm(1e3, true_mean, sqrt(true_var))
+
+
+prior_mu <- 0
+prior_var <- 20
+
+
+
+update_prior <- function(prior_mu, prior_var, new_data, true_var) {
+    lik_mean <- mean(new_data)
+    lik_var <- var(new_data)
+    n <- length(new_data)
+
+    # https://real-statistics.com/bayesian-statistics/bayesian-statistics-normal-data/conjugate-priors-normal-distribution/
+    # new_var <- prior_var * true_var/(true_var + n * prior_var)
+    # new_mu <- (prior_mu/prior_var + n*lik_mean/true_var)*new_var
+
+    # https://people.eecs.berkeley.edu/~jordan/courses/260-spring10/lectures/lecture5.pdf
+    new_var <- (1/prior_var + n/true_var) ^(-1)
+    new_mu <- (prior_var * lik_mean + true_var * prior_mu)/(true_var/n + prior_var)
+
+    list(mu = new_mu,
+        var = new_var)
+
+}
+
+post_prob_gt <- function(prior_mu, prior_var, new_data, true_var, post_test = 0) {
+
+    new_params <- update_prior(prior_mu, prior_var, new_data, true_var)
+
+    pnorm(post_test, mean = new_params$mu, sqrt(new_params$var), lower.tail = FALSE)
+
+
+}
+
+
+post_prob_gt(
+    prior_mu, 
+    new_data = sample_data[1:100],
+    true_var = true_var)
+
+
+
+
+
+
+
+
+
+
+
+
+
+```
+
+
+
+
+
+
+```{r}
+power_analysis <- function(check_at = c(100, 200),
+                           true_mean = 0,
+                           prior_var = 20,
+                           prior_mu = 0,
+                           true_var = 49,
+                           post_test = 0,
+                           nsim = 1000) {
+    names(check_at) <- paste0("L", seq_along(check_at))
+    purrr::map(1:nsim, function(.s) {
+        sample_data <- rnorm(max(check_at), true_mean, sqrt(true_var))
+        purrr::map_dbl(check_at, function(.n) {
+            post_prob_gt(
+                prior_mu = prior_mu,
+                prior_var = prior_var,
+                new_data = sample_data[1:.n],
+                true_var = true_var,
+                post_test = post_test
+            )
+        })
+    })
+}
+
+```
+
+
+
+```{r}
+null_example <- power_analysis(nsim = 1e4) |>
+    dplyr::bind_rows()
+
+
+
+mean(null_example$L2 > .975)
+mean(null_example$L1 > .975)
+
+mean(null_example$L1 > .975 | null_example$L2 > .975)
+
+
+power_analysis(nsim = 1e6, prior_var = 2) |>
+    dplyr::bind_rows() |>
+    with(
+        c(
+            interim_success = mean(L1 > .975),
+            final_success = mean(L2 > .975), 
+            either_success = mean(L1 > .975 | L2 > .975)
+        )
+    )
+
+
+
+power_analysis(nsim = 1e6, prior_var = 2, true_mean = 1) |>
+    dplyr::bind_rows() |>
+    with(
+        c(
+            interim_success = mean(L1 > .975),
+            final_success = mean(L2 > .975), 
+            either_success = mean(L1 > .975 | L2 > .975)
+        )
+    )
+
+
+
+power.t.test(n= 200, 
+        delta = 1, 
+        sd = sqrt(49), 
+        sig.level = 0.028227, 
+        type = "one.sample",
+        alternative = "one.sided")
+```
+
+
+```{r}
+
+# https://keaven.github.io/gsd-tech-manual/index.html
+gsDesign::gsDesign(
+    k = 2,
+    test.type = 1,
+    alpha = 0.028227,
+    beta = 1 - 0.5412366,
+    delta = 1/sqrt(49)
+
+)
+
+```

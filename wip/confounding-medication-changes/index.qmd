@@ -43,8 +43,8 @@ update_bp <- function(prior_bp,
 #' @param prior_meds test
 update_meds <- function(prior_meds, prior_bp, prob_med_change = 1) {
     med_difference <- dplyr::case_when(
-        prior_bp >= 160 ~ 1,
-        prior_bp >= 120 ~ 0,
+        prior_bp >= 140 ~ 1,
+        prior_bp >= 130 ~ 0,
         prior_bp < 120 ~ -1
     )
 
@@ -129,7 +129,7 @@ sim_trial <- simulate_trial(
   bl_bp_mean = 150, bl_bp_sd = 10,
   bl_meds_mean = 3, bl_meds_sd = 0,
   N.t = 1e4, N.s = 1e4,
-  additional_med_effect = -5, 
+  additional_med_effect = -10, 
   treatment_effect = c(-12, -8),
   sham_effect = c(0,0),
   effect_sd = 5,
@@ -138,16 +138,63 @@ sim_trial <- simulate_trial(
 ```
 
 ```{r}
+# everything looks good for time1
 lm(time1_bp ~ TX + bl_meds + bl_bp, data = sim_trial)
-lm(time2_bp ~ TX + bl_bp + time1_meds, data = sim_trial)
-lm(time2_bp ~ TX + time1_bp, data = sim_trial)
-lm(time2_bp ~ TX + time1_bp + time1_meds, data = sim_trial)
 
+# doesn't look good for time 2
+lm(time2_bp ~ TX + bl_bp + time1_meds, data = sim_trial)
+
+# time 1 to 2 looks good
+lm(time2_bp ~ TX + time1_bp, data = sim_trial)
+
+lm(time2_bp ~ TX + time1_bp + time1_meds, data = sim_trial)
 ```
+
+
 
 ```{r}
 long_sim_trial <- sim_trial |>
   select(TX, patientid, ends_with("_bp")) |>
-  pivot_longer(ends_with("_bp")) |>
-  mutate(name = factor(name, levels = c("bl_bp", "time1_bp", "time2_bp")))
+  pivot_longer(ends_with("_bp"), names_to = "timepoint", values_to = "bp") |>
+  mutate(timepoint = factor(timepoint, levels = c("bl_bp", "time1_bp", "time2_bp"), labels = c("bl", "time1", "time2")),
+        patientid = as.factor(patientid))
+
+
+long_sim_trial_meds <- sim_trial |>
+  select(TX, patientid, ends_with("_meds")) |>
+  pivot_longer(ends_with("_meds"), names_to = "timepoint", values_to = "meds") |>
+  mutate(timepoint = factor(timepoint, levels = c("bl_meds", "time1_meds"), labels = c("time1", "time2")),
+        patientid = as.factor(patientid))
+
+long_sim_trial <- dplyr::left_join(long_sim_trial, long_sim_trial_meds, by = join_by(TX, patientid, timepoint))
+long_sim_trial[["med_effect"]] <- as.integer(long_sim_trial$timepoint == "time2")
+long_sim_trial_med_imp  <- long_sim_trial
+long_sim_trial_med_imp$meds[is.na(long_sim_trial_med_imp$meds)] <- 0
+```
+
+```{r}
+library(lme4)
+lme4_fit <- lme4::lmer(bp ~ TX*timepoint + (1|patientid) + meds:med_effect, data = long_sim_trial_med_imp)
+lme4_fit
+```
+
+
+```{r}
+library(mmrm)
+mmrm_fit <- mmrm::mmrm(bp ~ TX*timepoint + us(timepoint|patientid) + meds:timepoint , data = long_sim_trial_med_imp)
+# meds can be included as meds:timepoint but there are some NAs for baseline and time1 since there is no variability to the meds
+mmrm_fit
+
+# vcov(mmrm_fit)[1:6, 1:6] |> cov2cor() |> round(2)
+# this is close but the estimate for timepiotn2 is 3x the medication effect
+
+
+emm_obj <- emmeans::emmeans(mmrm_fit, ~TX|timepoint)
+emmeans::contrast(emm_obj, "trt.vs.ctrl", ref = "TX0")
+```
+
+
+```{r}
+# install.packages('brms.mmrm')
+
 ```

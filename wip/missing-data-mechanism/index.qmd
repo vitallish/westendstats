@@ -1,0 +1,15 @@
+---
+title: "Missing Data Mechanism"
+author: "Vitaly Druker"
+date: 2023-09-01
+categories: [R, simulation, missing data]
+---
+
+
+
+```{r}
+
+library(tibble)
+library(dplyr)
+
+```

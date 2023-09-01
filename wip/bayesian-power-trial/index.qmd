@@ -66,6 +66,4 @@ library(bayesDP) # package that was used in the clinical trial
 
 @haddad2017 for perspective from device community
 
-specifics about dynamic borrowing @viele2014
-
-test
+Overview of different borrow strategies can be found here @viele2014. It didn't have details on how to implement dynamic borrowing in the way the @böhm2020 did.
