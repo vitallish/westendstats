@@ -8,8 +8,26 @@ categories: [R, simulation, missing data]
 
 
 ```{r}
-
 library(tibble)
 library(dplyr)
+```
+
+
+
+
+```{r}
+n <- 1000
+
+
+```
+
+
+Missing completely at random
+Missing at Random
+Not missing at Random
+
+```{r}
+
+
 
 ```

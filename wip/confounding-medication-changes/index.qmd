@@ -45,7 +45,7 @@ update_meds <- function(prior_meds, prior_bp, prob_med_change = 1) {
     med_difference <- dplyr::case_when(
         prior_bp >= 140 ~ 1,
         prior_bp >= 130 ~ 0,
-        prior_bp < 120 ~ -1
+        prior_bp < 130 ~ -1
     )
 
     # allow randomness in medication change 
@@ -125,6 +125,7 @@ simulate_trial <- function(bl_bp_mean, bl_bp_sd,
 
 ```{r}
 
+set.seed(1234)
 sim_trial <- simulate_trial(
   bl_bp_mean = 150, bl_bp_sd = 10,
   bl_meds_mean = 3, bl_meds_sd = 0,
@@ -176,6 +177,7 @@ long_sim_trial_med_imp$meds[is.na(long_sim_trial_med_imp$meds)] <- 0
 library(lme4)
 lme4_fit <- lme4::lmer(bp ~ TX*timepoint + (1|patientid) + meds:med_effect, data = long_sim_trial_med_imp)
 lme4_fit
+
 ```
 
 
@@ -187,14 +189,34 @@ mmrm_fit
 
 # vcov(mmrm_fit)[1:6, 1:6] |> cov2cor() |> round(2)
 # this is close but the estimate for timepiotn2 is 3x the medication effect
+```
 
+```{r}
 
 emm_obj <- emmeans::emmeans(mmrm_fit, ~TX|timepoint)
 emmeans::contrast(emm_obj, "trt.vs.ctrl", ref = "TX0")
 ```
 
+```{r}
+
+```
 
 ```{r}
 # install.packages('brms.mmrm')
+
+```
+
+
+```{r}
+sim_trial |> 
+    subset(TX == 0, select = c(bl_bp, time1_bp, time2_bp))  |> cov()
+
+
+
+library(ggplot2)
+ggplot(sim_trial, aes( x = bl_bp, y = time1_bp, color = as.factor(TX))) +
+geom_point() +
+facet_wrap(~TX)
+
 
 ```
