@@ -2,17 +2,12 @@
 title: "Simple Bayesian Interim Looks"
 author: "Vitaly Druker"
 categories: [R, simulation, clinical trial design, bayesian]
+bibliography: references.bib
 ---
-
-
-
 
 ## Notes
 
 Conjugate normal prior:
-
-https://people.eecs.berkeley.edu/~jordan/courses/260-spring10/lectures/lecture5.pdf
-
 
 ```{r}
 true_var <- 9
@@ -58,25 +53,7 @@ post_prob_gt(
     prior_mu, 
     new_data = sample_data[1:100],
     true_var = true_var)
-
-
-
-
-
-
-
-
-
-
-
-
-
 ```
-
-
-
-
-
 
 ```{r}
 power_analysis <- function(check_at = c(100, 200),
@@ -104,7 +81,7 @@ power_analysis <- function(check_at = c(100, 200),
 ```
 
 
-
+The results below show that type I error is inflated past te 
 ```{r}
 null_example <- power_analysis(nsim = 1e4) |>
     dplyr::bind_rows()
@@ -116,39 +93,75 @@ mean(null_example$L1 > .975)
 
 mean(null_example$L1 > .975 | null_example$L2 > .975)
 
-
-power_analysis(nsim = 1e6, prior_var = 2) |>
-    dplyr::bind_rows() |>
-    with(
-        c(
-            interim_success = mean(L1 > .975),
-            final_success = mean(L2 > .975), 
-            either_success = mean(L1 > .975 | L2 > .975)
-        )
-    )
-
-
-
-power_analysis(nsim = 1e6, prior_var = 2, true_mean = 1) |>
-    dplyr::bind_rows() |>
-    with(
-        c(
-            interim_success = mean(L1 > .975),
-            final_success = mean(L2 > .975), 
-            either_success = mean(L1 > .975 | L2 > .975)
-        )
-    )
-
-
-
-power.t.test(n= 200, 
-        delta = 1, 
-        sd = sqrt(49), 
-        sig.level = 0.028227, 
-        type = "one.sample",
-        alternative = "one.sided")
 ```
 
+```{r}
+
+null_power_sim <- power_analysis(nsim = 1e6, prior_var = 2) |>
+    dplyr::bind_rows()
+
+
+null_power_sim |>
+    with(
+        c(
+            interim_success = mean(L1 > .975),
+            final_success = mean(L2 > .975),
+            either_success = mean(L1 > .975 | L2 > .975)
+        )
+    )
+
+
+post_cutoffs <- seq(.975, 1, length.out = 10)
+
+post_cutoffs_df <- expand.grid(L1 = post_cutoffs, 
+            L2 = post_cutoffs)
+
+post_cutoffs_df$either_success <- sapply(
+    seq_len(nrow(post_cutoffs_df)), 
+function(.r) {
+    with(null_power_sim, {
+        mean(L1 > post_cutoffs_df$L1[.r] | L2 > post_cutoffs_df$L2[.r])
+
+    })
+}
+
+)
+
+
+ggplot(post_cutoffs_df, aes(x = L1, y = L2, fill = either_success)) + 
+geom_tile() +
+geom_contour(aes(z = either_success, color = either_success < .025))
+
+
+
+
+alter_power_sim <- power_analysis(
+    nsim = 1e6,
+    prior_var = 2,
+    true_mean = 1
+) 
+
+alter_power_sim |>
+    dplyr::bind_rows() |>
+    with(
+        c(
+            interim_success = mean(L1 > .975),
+            final_success = mean(L2 > .975),
+            either_success = mean(L1 > .975 | L2 > .975)
+        )
+    )
+
+
+
+power.t.test(
+    n = 200,
+    delta = 1,
+    sd = sqrt(49),
+    sig.level = 0.028227,
+    type = "one.sample",
+    alternative = "one.sided"
+)
+```
 
 ```{r}
 
@@ -163,3 +176,10 @@ gsDesign::gsDesign(
 )
 
 ```
+
+@ryan2020 shows that type I error is still an issue. Using skeptical prior may help. @kopp-schneider2020 shows that it's not possible to improve power with dynamic borrowing.
+
+These two references were called out in @ryan2020 as recommending skeptical priors:
+
+- Dmitrienko A, Wang M-D. Bayesian predictive approach to interim monitoring in clinical trials. Stat Med. 2006;25:2178--95. 28.
+- Spiegelhalter DJ, Abrams KR, Myles JP. Bayesian approaches to clinical trials and health-care evaluation. Chichester: Wiley; 2004
