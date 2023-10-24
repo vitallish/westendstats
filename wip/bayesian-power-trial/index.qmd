@@ -20,20 +20,57 @@ Try to recreate power analysis in @böhm2020 - renal denervation trial that uses
 
 -   Note that in the table below I transformed the standard errors found in table 3 of the publication for the pilot study.
 
-    ```{r}
-    parameter_assumptions <- tibble::tribble(
-        ~trial,    ~arm,        ~basline_adjusted_mean, ~baseline_adjusted_sd, ~n,
-        "pilot",   "treatment", -8.8,                   1.8*sqrt(36),          36,
-        "pilot",   "control",   -1.8,                   1.8*sqrt(36),          36,
-        "pivotal", "treatment", -6.8,                   12,                    NA,
-        "pivotal", "control",   -1.8,                   12,                    NA
-        
-    )
-    ```
+```{r}
+parameter_assumptions <- tibble::tribble(
+    ~trial,    ~arm,        ~basline_adjusted_mean, ~baseline_adjusted_sd, ~n,
+    "pilot",   "treatment", -8.8,                   1.8*sqrt(36),          36,
+    "pilot",   "control",   -1.8,                   1.8*sqrt(36),          36,
+    "pivotal", "treatment", -6.8,                   12,                    NA,
+    "pivotal", "control",   -1.8,                   12,                    NA
+    
+)
+parameter_assumptions
+```
 
-Weibull discount functyion parameters that were used: Shape $k = 3$, scale $\lambda =0.25$
+Weibull discount function parameters that were used: Shape $k = 3$, scale $\lambda =0.25$
 
 Interim analyses will happen at 175 and 220 subjects
+
+
+$$
+y_i = \mu_t I(i \in t) + \mu_c I(i \in c) + x_i\beta  + \epsilon_i; \epsilon \sim N(0, sigma^2)
+$$
+
+```{r}
+simulate_data <- function(n, mu_t, mu_c, beta_p, mu_x_i, sigma_x_i, sigma_2) {
+    n_c <- round(n/2)
+    n_t <- n - n_c
+
+    t_i <- rep(c(0, 1), c(n_c, n_t))
+    # baseline measurement
+    mu_x_i <- rnorm(n, mean = mu_x_i, sd = sigma_x_i)
+    # mean centered baseline
+    x_i <- scale(mu_x_i, scale = FALSE)
+    # error term
+    epsilon_i <- rnorm(0, mean = 0, sd = sqrt(sigma_2))
+
+    y_i <- mu_t * t_i == 1 + mu_c * t_i == 0 + beta_p * x_i + epsilon_i
+
+    out <- tibble::tibble(
+        t_i,
+        mu_x_i,
+        x_i,
+        epsilon_i,
+        y_i
+    )
+}
+```
+
+
+- $y_i$ is change from baseline in BP
+- $I(i \in t)$ is 1 if subject _i_ is in treatemet
+- $\beta$ regression coefficient for the adjustment in mean-centered baseline BP, $x_i$
+
 
 Treatment effect defined by:
 
@@ -67,3 +104,95 @@ library(bayesDP) # package that was used in the clinical trial
 @haddad2017 for perspective from device community
 
 Overview of different borrow strategies can be found here @viele2014. It didn't have details on how to implement dynamic borrowing in the way the @böhm2020 did.
+
+
+
+```{r}
+# total subjects = 221
+# approx 73 control
+# 148 active (2:1 randomization)
+
+simulate_data <- function(
+    N_t = 148, mu_t = -6.8, sigma_t = 12, 
+    N_c = 74, mu_c = -1.8, sigma_c = sigma_t) {
+    
+
+    observed_treatment <- rnorm(N_t, mean = mu_t, sd = sigma_t)
+    observed_control <- rnorm(N_c, mean = mu_c, sd = sigma_c)
+
+
+    tibble::tibble(
+        trt_i = c(rep(1, N_t), rep(0, N_c)),
+        baseline_adjusted_mean = c(observed_treatment, observed_control)
+    )    
+
+}
+
+
+library(collapse)
+
+
+
+obs_stats <- d |> 
+    fgroup_by(trt_i) |> 
+    fsummarise(sd = sd(baseline_adjusted_mean),
+               mean = fmean(baseline_adjusted_mean),
+               N = length(baseline_adjusted_mean)) |> 
+    rsplit(~trt_i)
+
+
+
+
+first_sims <- lapply(1:1e2, function(.i) {
+
+
+observed_treatment <- rnorm(148, mean = -6.8, sd = 12)
+observed_control <- rnorm(73, mean = -1.8, sd = 12)
+
+
+
+output <- bayesDP::bdpnormal(
+    mu_t  = mean(observed_treatment),
+    sigma_t = sd(observed_treatment),
+    N_t = length(observed_treatment),
+
+    mu0_t = -8.8,
+    sigma0_t = 1.8*sqrt(36),
+    N0_t = 36,
+
+    mu_c = mean(observed_control),
+    sigma_c = sd(observed_control),
+    N_c = length(observed_control),
+
+    mu0_c = -1.8,
+    sigma0_c = 1.8*sqrt(36),
+    N0_c = 36,
+
+    discount_function = "weibull",
+    weibull_scale = .025,
+    weibull_shape = 3
+)
+treatment_means <- sapply(output$posterior_treatment, mean)
+control_means <- sapply(output$posterior_control, mean)
+post_prob_p <- mean(output$final$posterior < 0)
+# post_prob_p > .975
+
+list(
+    treatment_means = treatment_means,
+    control_means = control_means,
+    post_prob_p  = post_prob_p
+)
+}) 
+
+
+
+get_elem(first_sims, "treatment_means") |> unlist2d() |>  as.data.frame() |> 
+with(plot(posterior_flat_mu, alpha_discount))
+
+first_sims
+mean(first_sims > .975)
+
+
+
+boot::boot(first_sims, function(.data, .ind) mean(.data[.ind] > .975), R = 1000) |> boot::boot.ci(type = "perc")
+```
