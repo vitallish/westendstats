@@ -12,7 +12,35 @@ draft: false
 bibliography: references.bib
 ---
 
+## Introduction
+
+The SPYRAL HTN-ON MED Expansion study is a confirmatory clinical trial that tested the effect of cather-based renal denervation on systolic blood pressure (SBP) at 6 months time. These types of devices of shown effecitivensss in this area but the trials can be plauged by issues with medication adherence. The FDA recently held an [advisory panel on the device](https://news.medtronic.com/2023-08-23-Medtronic-issues-statement-on-the-FDA-Circulatory-Systems-Devices-Advisory-Panel-vote-for-the-Symplicity-Spyral-Renal-Denervation-System) that discussed both the Spyral device (Medtronic) and Paradise device (Recor). 
+Unfortunately, this trial (did not meet it's primary efficacy endpoint)[https://news.medtronic.com/2022-11-07-SPYRAL-HTN-ON-MED-study-demonstrates-meaningful-clinical-benefits-consistent-with-other-SPYRAL-HTN-renal-denervation-trials] with a posterior probability of 51% for the renal denerivation (RDN) group. Neverthe less, the design of this trial is interesting and deserves a look on its own.
+
 ## Overview of SPYRAL HTN-ON
+
+The SPYRAL HTN-ON MED  study specifically tested the effects of RDN in the presence of antihypertensive medications. This was in contrast to the SPYRAL HTN-OFF MED study where subjects were kept off of medication for until the primary endpoint. The expansion phase built on top of an 80-patient pilot study and was designed to incorporate information from the pilot study using an informative prior.
+
+However, this informative prior is not used in a typical way but it's influence on the posterior can be downweighted if the pilot data is different than the observed data in the exapansion phase @böhm2020. The amount of weighting is controlled by separate power parmaters, $\alpha_t$ and $\alpha_c$ for the treatment and control arm respectively. These values can range from 0 to 1 - where 1 results in complete pooling of the pilot and expansion data while a power parameter of 0 ignores all pilot study data.
+
+The power parameters are calculated dynamically and are a transformation of "p values" that compare the historical and current data. 
+
+The details of this calculation are given in the  vignette accessed with `vignette("bdpnormal-vignette", package = "bayesDP")` @baysdp.
+
+
+
+
+
+- TODO - show alpha vs difference between historic/current data.
+
+
+
+
+
+
+
+The overall idea is 
+The design is decribed in much more detail in . 
 
 Try to recreate power analysis in @böhm2020 - renal denervation trial that uses this method
 
@@ -196,3 +224,9 @@ mean(first_sims > .975)
 
 boot::boot(first_sims, function(.data, .ind) mean(.data[.ind] > .975), R = 1000) |> boot::boot.ci(type = "perc")
 ```
+
+## Next Steps
+
+- Incorporate interim analyses
+- Do the math by hand
+- Rewrite with STAN
