@@ -28,7 +28,24 @@ The power parameters are calculated dynamically and are a transformation of "p v
 The details of this calculation are given in the  vignette accessed with `vignette("bdpnormal-vignette", package = "bayesDP")` @baysdp.
 
 
+### Published Power Calculations
 
+The following parameters were used to calculate power:
+
+```{r}
+library(flextable)
+parameter_assumptions <- tibble::tribble(
+    ~trial,    ~arm,        ~basline_adjusted_mean, ~baseline_adjusted_sd, ~n,
+    "pilot",   "treatment", -8.8,                   1.8*sqrt(36),          36,
+    "pilot",   "control",   -1.8,                   1.8*sqrt(36),          36,
+    "pivotal", "treatment", -6.8,                   12,                    NA,
+    "pivotal", "control",   -1.8,                   12,                    NA
+    
+)
+parameter_assumptions
+```
+
+These values are taken from Table 3 of @böhm2020. 
 
 
 - TODO - show alpha vs difference between historic/current data.
@@ -48,17 +65,7 @@ Try to recreate power analysis in @böhm2020 - renal denervation trial that uses
 
 -   Note that in the table below I transformed the standard errors found in table 3 of the publication for the pilot study.
 
-```{r}
-parameter_assumptions <- tibble::tribble(
-    ~trial,    ~arm,        ~basline_adjusted_mean, ~baseline_adjusted_sd, ~n,
-    "pilot",   "treatment", -8.8,                   1.8*sqrt(36),          36,
-    "pilot",   "control",   -1.8,                   1.8*sqrt(36),          36,
-    "pivotal", "treatment", -6.8,                   12,                    NA,
-    "pivotal", "control",   -1.8,                   12,                    NA
-    
-)
-parameter_assumptions
-```
+
 
 Weibull discount function parameters that were used: Shape $k = 3$, scale $\lambda =0.25$
 
