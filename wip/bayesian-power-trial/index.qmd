@@ -33,6 +33,8 @@ The details of this calculation are given in the  vignette accessed with `vignet
 The following parameters were used to calculate power:
 
 ```{r}
+#| label: tbl-params
+#| tbl-cap: Historical data and assumptions used to calculate power in the pivotal trial
 library(flextable)
 parameter_assumptions <- tibble::tribble(
     ~trial,    ~arm,        ~basline_adjusted_mean, ~baseline_adjusted_sd, ~n,
@@ -42,35 +44,29 @@ parameter_assumptions <- tibble::tribble(
     "pivotal", "control",   -1.8,                   12,                    NA
     
 )
-parameter_assumptions
+parameter_assumptions |> 
+    flextable() |> 
+    set_header_labels("trial" = "Trial",
+                     "arm" = "Arm",
+                     "baseline_adjusted_mean" = "Baseline Adjusted Mean",
+                     "baseline_adjusted_sd" = "Baseline Adjusted SD",
+                     "n" = "Patients") 
+
 ```
 
-These values are taken from Table 3 of @böhm2020. 
+These values are taken from Table 3 of @böhm2020. Note that the publication shows baseline adjusted standard errors for the pilot trial. In @tbl-params, the values for the pilot study are given as standard deviations ($SE * \sqrt{n}$). 
+
+Additionally the authors published the parameters used in the weibull discount function, that transforms the p value to the alpha used to determine how much the historical data effects the posterior. They used shape: $k = 3$ and scale: $\lambda = .25$. 
+
+Power for these assumptions is listed as 96% with 221 subjects, Type I error is given as 3%.
 
 
-- TODO - show alpha vs difference between historic/current data.
+### Current Limitations of analysis below
 
+The trial has few other aspects that are currently not explored in this post:
 
-
-
-
-
-
-The overall idea is 
-The design is decribed in much more detail in . 
-
-Try to recreate power analysis in @böhm2020 - renal denervation trial that uses this method
-
--   Specifically the ON-MED group
-
--   Note that in the table below I transformed the standard errors found in table 3 of the publication for the pilot study.
-
-
-
-Weibull discount function parameters that were used: Shape $k = 3$, scale $\lambda =0.25$
-
-Interim analyses will happen at 175 and 220 subjects
-
+- An interim analysis was precepecified in HTN-ON MED at 149 and 187 subjects. This is not implemented below as the expected sample size should be smaller - but it should (hopefully) not affect overal power/type I error.
+- Estimates for effects in each arm are adjusted for baseline values as shown in the equation below. However, simulations here are done using marginal estimates for simplicity.
 
 $$
 y_i = \mu_t I(i \in t) + \mu_c I(i \in c) + x_i\beta  + \epsilon_i; \epsilon \sim N(0, sigma^2)
