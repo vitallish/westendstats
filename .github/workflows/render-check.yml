@@ -35,6 +35,8 @@ jobs:
       - name: Render project
         run: |
           docker run --rm \
+            --user "$(id -u):$(id -g)" \
+            -e HOME=/tmp \
             -v "${{ github.workspace }}:/workspace" \
             -w /workspace \
             westendstats-render:ci \
