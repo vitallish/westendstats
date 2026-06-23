@@ -1,0 +1,15 @@
+{
+  "hash": "183f272801e43931cd0e3a956e541622",
+  "result": {
+    "engine": "knitr",
+    "markdown": "---\ntitle: \"Bayesian Power Trial\"\nauthor: \"Vitaly Druker\"\ndate: \"\"\ncategories: \n    - R\n    - simulation\n    - basics\ndraft: false\n# bibliography: references.bib\n---\n\n\n::: {.cell}\n\n```{.r .cell-code}\ncompare_betas_sim <- function(alpha1, beta1, alpha2, beta2, num_sims = 1e4) {\n    mean(\n        rbeta(num_sims, alpha2, beta2) > rbeta(num_sims, alpha1, beta1)\n    )\n}\n\ncompare_betas_int <- function(alpha1, beta1, alpha2, beta2, ...) {\n    f <- function(x) {\n        dbeta(x, alpha1, beta1) *\n            pbeta(x, alpha2, beta2, lower.tail = FALSE)\n    }\n    integrate(f, lower = 0, upper = 1, ...)$value\n}\n\nalpha1 <- 2\nbeta1 <- 5\n\nalpha2 <- 8\nbeta2 <- 4\n\n# run multiple sample to get an idea of monte carlo standard error and get\n# better estimate of true value\nmc <- sapply(1:1000, function(.i) compare_betas_sim(alpha1, beta1, alpha2, beta2))\nmean(mc)\n```\n\n::: {.cell-output .cell-output-stdout}\n\n```\n[1] 0.9571119\n```\n\n\n:::\n\n```{.r .cell-code}\nsd(mc)\n```\n\n::: {.cell-output .cell-output-stdout}\n\n```\n[1] 0.001954397\n```\n\n\n:::\n\n```{.r .cell-code}\n# compare to 'exact' answer\ncompare_betas_int(alpha1, beta1, alpha2, beta2)\n```\n\n::: {.cell-output .cell-output-stdout}\n\n```\n[1] 0.9570136\n```\n\n\n:::\n\n```{.r .cell-code}\n# check that the integration is within a standard error of the mean\n(mean(mc) - compare_betas_int(alpha1, beta1, alpha2, beta2)) < sd(mc)\n```\n\n::: {.cell-output .cell-output-stdout}\n\n```\n[1] TRUE\n```\n\n\n:::\n\n```{.r .cell-code}\nmicrobenchmark::microbenchmark(\n    simulation = compare_betas_sim(alpha1, beta1, alpha2, beta2),\n    integration = compare_betas_int(alpha1, beta1, alpha2, beta2)\n)\n```\n\n::: {.cell-output .cell-output-stdout}\n\n```\nUnit: microseconds\n        expr     min       lq      mean  median       uq     max neval cld\n  simulation 851.571 886.7505 891.85983 892.255 896.8855 927.711   100  a \n integration  11.370  12.4200  16.33683  13.880  15.8650  78.730   100   b\n```\n\n\n:::\n:::\n",
+    "supporting": [],
+    "filters": [
+      "rmarkdown/pagebreak.lua"
+    ],
+    "includes": {},
+    "engineDependencies": {},
+    "preserve": {},
+    "postProcess": true
+  }
+}

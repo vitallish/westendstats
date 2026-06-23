@@ -1,0 +1,51 @@
+---
+title: "Bayesian Power Trial"
+author: "Vitaly Druker"
+date: ""
+categories: 
+    - R
+    - simulation
+    - basics
+draft: false
+# bibliography: references.bib
+---
+
+```{r}
+compare_betas_sim <- function(alpha1, beta1, alpha2, beta2, num_sims = 1e4) {
+    mean(
+        rbeta(num_sims, alpha2, beta2) > rbeta(num_sims, alpha1, beta1)
+    )
+}
+
+compare_betas_int <- function(alpha1, beta1, alpha2, beta2, ...) {
+    f <- function(x) {
+        dbeta(x, alpha1, beta1) *
+            pbeta(x, alpha2, beta2, lower.tail = FALSE)
+    }
+    integrate(f, lower = 0, upper = 1, ...)$value
+}
+
+alpha1 <- 2
+beta1 <- 5
+
+alpha2 <- 8
+beta2 <- 4
+
+# run multiple sample to get an idea of monte carlo standard error and get
+# better estimate of true value
+mc <- sapply(1:1000, function(.i) compare_betas_sim(alpha1, beta1, alpha2, beta2))
+mean(mc)
+sd(mc)
+
+# compare to 'exact' answer
+compare_betas_int(alpha1, beta1, alpha2, beta2)
+
+# check that the integration is within a standard error of the mean
+(mean(mc) - compare_betas_int(alpha1, beta1, alpha2, beta2)) < sd(mc)
+
+microbenchmark::microbenchmark(
+    simulation = compare_betas_sim(alpha1, beta1, alpha2, beta2),
+    integration = compare_betas_int(alpha1, beta1, alpha2, beta2)
+)
+
+```

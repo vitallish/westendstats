@@ -12,28 +12,96 @@ draft: false
 bibliography: references.bib
 ---
 
+## Introduction
+
+The SPYRAL HTN-ON MED Expansion study is a confirmatory clinical trial that tested the effect of cather-based renal denervation on systolic blood pressure (SBP) at 6 months time. These types of devices of shown effecitivensss in this area but the trials can be plauged by issues with medication adherence. The FDA recently held an [advisory panel on the device](https://news.medtronic.com/2023-08-23-Medtronic-issues-statement-on-the-FDA-Circulatory-Systems-Devices-Advisory-Panel-vote-for-the-Symplicity-Spyral-Renal-Denervation-System) that discussed both the Spyral device (Medtronic) and Paradise device (Recor). 
+Unfortunately, this trial (did not meet it's primary efficacy endpoint)[https://news.medtronic.com/2022-11-07-SPYRAL-HTN-ON-MED-study-demonstrates-meaningful-clinical-benefits-consistent-with-other-SPYRAL-HTN-renal-denervation-trials] with a posterior probability of 51% for the renal denerivation (RDN) group. Neverthe less, the design of this trial is interesting and deserves a look on its own.
+
 ## Overview of SPYRAL HTN-ON
 
-Try to recreate power analysis in @böhm2020 - renal denervation trial that uses this method
+The SPYRAL HTN-ON MED  study specifically tested the effects of RDN in the presence of antihypertensive medications. This was in contrast to the SPYRAL HTN-OFF MED study where subjects were kept off of medication for until the primary endpoint. The expansion phase built on top of an 80-patient pilot study and was designed to incorporate information from the pilot study using an informative prior.
 
--   Specifically the ON-MED group
+However, this informative prior is not used in a typical way but it's influence on the posterior can be downweighted if the pilot data is different than the observed data in the exapansion phase @böhm2020. The amount of weighting is controlled by separate power parmaters, $\alpha_t$ and $\alpha_c$ for the treatment and control arm respectively. These values can range from 0 to 1 - where 1 results in complete pooling of the pilot and expansion data while a power parameter of 0 ignores all pilot study data.
 
--   Note that in the table below I transformed the standard errors found in table 3 of the publication for the pilot study.
+The power parameters are calculated dynamically and are a transformation of "p values" that compare the historical and current data. 
 
-    ```{r}
-    parameter_assumptions <- tibble::tribble(
-        ~trial,    ~arm,        ~basline_adjusted_mean, ~baseline_adjusted_sd, ~n,
-        "pilot",   "treatment", -8.8,                   1.8*sqrt(36),          36,
-        "pilot",   "control",   -1.8,                   1.8*sqrt(36),          36,
-        "pivotal", "treatment", -6.8,                   12,                    NA,
-        "pivotal", "control",   -1.8,                   12,                    NA
-        
+The details of this calculation are given in the  vignette accessed with `vignette("bdpnormal-vignette", package = "bayesDP")` @baysdp.
+
+
+### Published Power Calculations
+
+The following parameters were used to calculate power:
+
+```{r}
+#| label: tbl-params
+#| tbl-cap: Historical data and assumptions used to calculate power in the pivotal trial
+library(flextable)
+parameter_assumptions <- tibble::tribble(
+    ~trial,    ~arm,        ~basline_adjusted_mean, ~baseline_adjusted_sd, ~n,
+    "pilot",   "treatment", -8.8,                   1.8*sqrt(36),          36,
+    "pilot",   "control",   -1.8,                   1.8*sqrt(36),          36,
+    "pivotal", "treatment", -6.8,                   12,                    NA,
+    "pivotal", "control",   -1.8,                   12,                    NA
+    
+)
+parameter_assumptions |> 
+    flextable() |> 
+    set_header_labels("trial" = "Trial",
+                     "arm" = "Arm",
+                     "baseline_adjusted_mean" = "Baseline Adjusted Mean",
+                     "baseline_adjusted_sd" = "Baseline Adjusted SD",
+                     "n" = "Patients") 
+
+```
+
+These values are taken from Table 3 of @böhm2020. Note that the publication shows baseline adjusted standard errors for the pilot trial. In @tbl-params, the values for the pilot study are given as standard deviations ($SE * \sqrt{n}$). 
+
+Additionally the authors published the parameters used in the weibull discount function, that transforms the p value to the alpha used to determine how much the historical data effects the posterior. They used shape: $k = 3$ and scale: $\lambda = .25$. 
+
+Power for these assumptions is listed as 96% with 221 subjects, Type I error is given as 3%.
+
+
+### Current Limitations of analysis below
+
+The trial has few other aspects that are currently not explored in this post:
+
+- An interim analysis was precepecified in HTN-ON MED at 149 and 187 subjects. This is not implemented below as the expected sample size should be smaller - but it should (hopefully) not affect overal power/type I error.
+- Estimates for effects in each arm are adjusted for baseline values as shown in the equation below. However, simulations here are done using marginal estimates for simplicity.
+
+$$
+y_i = \mu_t I(i \in t) + \mu_c I(i \in c) + x_i\beta  + \epsilon_i; \epsilon \sim N(0, sigma^2)
+$$
+
+```{r}
+simulate_data <- function(n, mu_t, mu_c, beta_p, mu_x_i, sigma_x_i, sigma_2) {
+    n_c <- round(n/2)
+    n_t <- n - n_c
+
+    t_i <- rep(c(0, 1), c(n_c, n_t))
+    # baseline measurement
+    mu_x_i <- rnorm(n, mean = mu_x_i, sd = sigma_x_i)
+    # mean centered baseline
+    x_i <- scale(mu_x_i, scale = FALSE)
+    # error term
+    epsilon_i <- rnorm(0, mean = 0, sd = sqrt(sigma_2))
+
+    y_i <- mu_t * (t_i == 1) + mu_c * (t_i == 0) + beta_p * x_i + epsilon_i
+
+    out <- tibble::tibble(
+        t_i,
+        mu_x_i,
+        x_i,
+        epsilon_i,
+        y_i
     )
-    ```
+}
+```
 
-Weibull discount functyion parameters that were used: Shape $k = 3$, scale $\lambda =0.25$
 
-Interim analyses will happen at 175 and 220 subjects
+- $y_i$ is change from baseline in BP
+- $I(i \in t)$ is 1 if subject _i_ is in treatemet
+- $\beta$ regression coefficient for the adjustment in mean-centered baseline BP, $x_i$
+
 
 Treatment effect defined by:
 
@@ -66,6 +134,102 @@ library(bayesDP) # package that was used in the clinical trial
 
 @haddad2017 for perspective from device community
 
-specifics about dynamic borrowing @viele2014
+Overview of different borrow strategies can be found here @viele2014. It didn't have details on how to implement dynamic borrowing in the way the @böhm2020 did.
 
-test
+
+
+```{r}
+# total subjects = 221
+# approx 73 control
+# 148 active (2:1 randomization)
+
+simulate_data <- function(
+    N_t = 148, mu_t = -6.8, sigma_t = 12, 
+    N_c = 74, mu_c = -1.8, sigma_c = sigma_t) {
+    
+
+    observed_treatment <- rnorm(N_t, mean = mu_t, sd = sigma_t)
+    observed_control <- rnorm(N_c, mean = mu_c, sd = sigma_c)
+
+
+    tibble::tibble(
+        trt_i = c(rep(1, N_t), rep(0, N_c)),
+        baseline_adjusted_mean = c(observed_treatment, observed_control)
+    )    
+
+}
+
+
+library(collapse)
+
+
+d <- simulate_data()
+obs_stats <- d |> 
+    fgroup_by(trt_i) |> 
+    fsummarise(sd = sd(baseline_adjusted_mean),
+               mean = fmean(baseline_adjusted_mean),
+               N = length(baseline_adjusted_mean)) |> 
+    rsplit(~trt_i)
+
+
+
+
+first_sims <- lapply(1:1e2, function(.i) {
+
+
+observed_treatment <- rnorm(148, mean = -6.8, sd = 12)
+observed_control <- rnorm(73, mean = -1.8, sd = 12)
+
+
+
+output <- bayesDP::bdpnormal(
+    mu_t  = mean(observed_treatment),
+    sigma_t = sd(observed_treatment),
+    N_t = length(observed_treatment),
+
+    mu0_t = -8.8,
+    sigma0_t = 1.8*sqrt(36),
+    N0_t = 36,
+
+    mu_c = mean(observed_control),
+    sigma_c = sd(observed_control),
+    N_c = length(observed_control),
+
+    mu0_c = -1.8,
+    sigma0_c = 1.8*sqrt(36),
+    N0_c = 36,
+
+    discount_function = "weibull",
+    weibull_scale = .025,
+    weibull_shape = 3
+)
+treatment_means <- sapply(output$posterior_treatment, mean)
+control_means <- sapply(output$posterior_control, mean)
+post_prob_p <- mean(output$final$posterior < 0)
+# post_prob_p > .975
+
+list(
+    treatment_means = treatment_means,
+    control_means = control_means,
+    post_prob_p  = post_prob_p
+)
+}) 
+
+
+
+get_elem(first_sims, "treatment_means") |> unlist2d() |>  as.data.frame() |> 
+with(plot(posterior_flat_mu, alpha_discount))
+
+first_sims
+
+post_probs <- get_elem(first_sims, "post_prob_p") |> unlist()
+mean(post_probs > .975)
+
+boot::boot(post_probs, function(.data, .ind) mean(.data[.ind] > .975), R = 1000) |> boot::boot.ci(type = "perc")
+```
+
+## Next Steps
+
+- Incorporate interim analyses
+- Do the math by hand
+- Rewrite with STAN

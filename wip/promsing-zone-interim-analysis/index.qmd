@@ -1,0 +1,12 @@
+---
+title: "Promising Zone Sample Size Restimation"
+author: "Vitaly Druker"
+categories: [R, simulation, clinical trial design, interim]
+bibliography: references.bib
+---
+
+@chen2004 for inspiration from Momentum III study.
+
+New reading from @mehta2011 may be a good review with @bhatt2016 as an overview of adaptive designs in general and <https://trialsjournal.biomedcentral.com/articles/10.1186/s13063-020-04931-w> as an overview of these promising zone designs.
+
+There is an r pacakge but doesn't quite seem right: <https://rdrr.io/github/IDDI-BE/CPPZ/man/PZ.html>

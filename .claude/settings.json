@@ -1,0 +1,8 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(gh api *)",
+      "Bash(timeout 100 quarto render wip/bayesian-power-trial/index.qmd)"
+    ]
+  }
+}
