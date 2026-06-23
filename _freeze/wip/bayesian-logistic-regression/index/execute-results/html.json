@@ -1,0 +1,15 @@
+{
+  "hash": "90c2d61b57a2ac15a3956461531ff1b9",
+  "result": {
+    "engine": "knitr",
+    "markdown": "---\ntitle: \"Bayesian Logistic Regression\"\nauthor: \"Vitaly Druker\"\ncategories: [R, logistic regression, bayesian]\n---\n\n## Notes\n\nThe issue is that it seems that in a Bayesian logistic regression, if you have a categorical variable with multiple levels (i.e. control, low dose, high dose) then the estimate of treatment effect in the high dose arm is influenced by what happens in the low dose arm.\n\n\n\n\n\n## Example\n\n\n\n\n::: {.cell}\n\n```{.r .cell-code}\nn <- 10\nsuccess_vector <- function(x, n) {\n  c(\n    rep(1,x),\n    rep(0,n - x),\n\n  )\n}\n\ndata <- data.frame(\nid = seq(1, n*3)\n\n\n)\n```\n:::\n",
+    "supporting": [],
+    "filters": [
+      "rmarkdown/pagebreak.lua"
+    ],
+    "includes": {},
+    "engineDependencies": {},
+    "preserve": {},
+    "postProcess": true
+  }
+}

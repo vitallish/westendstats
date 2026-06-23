@@ -1,0 +1,100 @@
+---
+title: "Bayesian Logistic Regression"
+author: "Vitaly Druker"
+categories: [R, logistic regression, bayesian]
+---
+
+```{r}
+library(brms)
+```
+
+
+## Notes
+
+The issue is that it seems that in a Bayesian logistic regression, if you have a categorical variable with multiple levels (i.e. control, low dose, high dose) then the estimate of treatment effect in the high dose arm is influenced by what happens in the low dose arm.
+
+
+
+
+
+## Example
+
+
+
+```{r}
+n <- 10
+success_vector <- function(x, n) {
+  c(
+    rep(1,x),
+    rep(0,n - x)
+
+  )
+}
+
+d1 <- data.frame(
+  id = seq(1, n*3),
+  arm = rep(c("A", "B", "C"), each = n),
+  outcome = 
+    c(success_vector(5, n),
+  success_vector(5, n), success_vector(8, n))
+
+
+
+)
+
+d2 <- data.frame(
+  id = seq(1, n*3),
+  arm = rep(c("A", "B", "C"), each = n),
+  outcome = 
+    c(success_vector(5, n),
+  success_vector(8, n), success_vector(8, n))
+
+
+
+)
+```
+
+
+
+With GLM, you get the same estimate for dose C
+
+```{r}
+
+glm(outcome ~ arm, data = d1, family = binomial) |> broom::tidy()
+glm(outcome ~ arm, data = d2, family = binomial) |> broom::tidy()
+
+
+```
+
+
+
+However, with a Bayesian logistic regression model you get different estimates for armC
+
+
+```{r}
+
+model1 <- brm(outcome ~ arm,
+data = d1,
+family = bernoulli,
+init = 0, seed = 20260622,
+chains = 4, warmup = 1000, iter = 3500,
+refresh = 0, silent = 2
+)
+
+model2 <- brm(outcome ~ arm,
+data = d2,
+family = bernoulli,
+init = 0, seed = 20260622,
+chains = 4, warmup = 1000, iter = 3500,
+refresh = 0, silent = 2
+)
+
+
+```
+
+
+
+```{r}
+broom.mixed::tidy(model1)
+broom.mixed::tidy(model2)
+```

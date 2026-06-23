@@ -1,0 +1,24 @@
+{
+	"name": "${localWorkspaceFolderBasename}",
+	"build": {
+		"dockerfile": "Dockerfile",
+		"target": "base"
+	},
+	"customizations": {
+		"vscode": {
+			"extensions": [
+				"reditorsupport.r",
+				"quarto.quarto",
+				"ms-azuretools.vscode-docker",
+				"christian-kohler.path-intellisense",
+				"mechatroner.rainbow-csv",
+				"ms-vscode.live-server",
+				"ShahilKumar.docxreader",
+				"streetsidesoftware.code-spell-checker",
+				"muhammad-ahmad.xlsx-viewer",
+				"GitHub.vscode-pull-request-github",
+				"anthropic.claude-code"
+			]
+		}
+	}
+}

@@ -85,7 +85,7 @@ simulate_data <- function(n, mu_t, mu_c, beta_p, mu_x_i, sigma_x_i, sigma_2) {
     # error term
     epsilon_i <- rnorm(0, mean = 0, sd = sqrt(sigma_2))
 
-    y_i <- mu_t * t_i == 1 + mu_c * t_i == 0 + beta_p * x_i + epsilon_i
+    y_i <- mu_t * (t_i == 1) + mu_c * (t_i == 0) + beta_p * x_i + epsilon_i
 
     out <- tibble::tibble(
         t_i,
@@ -163,7 +163,7 @@ simulate_data <- function(
 library(collapse)
 
 
-
+d <- simulate_data()
 obs_stats <- d |> 
     fgroup_by(trt_i) |> 
     fsummarise(sd = sd(baseline_adjusted_mean),
@@ -221,11 +221,11 @@ get_elem(first_sims, "treatment_means") |> unlist2d() |>  as.data.frame() |>
 with(plot(posterior_flat_mu, alpha_discount))
 
 first_sims
-mean(first_sims > .975)
 
+post_probs <- get_elem(first_sims, "post_prob_p") |> unlist()
+mean(post_probs > .975)
 
-
-boot::boot(first_sims, function(.data, .ind) mean(.data[.ind] > .975), R = 1000) |> boot::boot.ci(type = "perc")
+boot::boot(post_probs, function(.data, .ind) mean(.data[.ind] > .975), R = 1000) |> boot::boot.ci(type = "perc")
 ```
 
 ## Next Steps

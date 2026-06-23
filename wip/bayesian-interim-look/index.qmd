@@ -10,6 +10,8 @@ bibliography: references.bib
 Conjugate normal prior:
 
 ```{r}
+library(ggplot2)
+
 true_var <- 9
 true_mean <- 1
 
@@ -50,7 +52,8 @@ post_prob_gt <- function(prior_mu, prior_var, new_data, true_var, post_test = 0)
 
 
 post_prob_gt(
-    prior_mu, 
+    prior_mu,
+    prior_var = prior_var,
     new_data = sample_data[1:100],
     true_var = true_var)
 ```
