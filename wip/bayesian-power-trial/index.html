@@ -2,14 +2,17 @@
 <html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en"><head>
 
 <meta charset="utf-8">
-<meta name="generator" content="quarto-1.3.450">
+<meta name="generator" content="quarto-1.9.38">
 
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
 
 <meta name="author" content="Vitaly Druker">
 
-<title>West End Statistics - Bayesian Power Trial</title>
+<title>Bayesian Power Trial – West End Statistics</title>
 <style>
+/* Default styles provided by pandoc.
+** See https://pandoc.org/MANUAL.html#variables-for-html for config info.
+*/
 code{white-space: pre-wrap;}
 span.smallcaps{font-variant: small-caps;}
 div.columns{display: flex; gap: min(4vw, 1.5em);}
@@ -22,6 +25,7 @@ ul.task-list li input[type="checkbox"] {
   vertical-align: middle;
 }
 /* CSS for syntax highlighting */
+html { -webkit-text-size-adjust: 100%; }
 pre > code.sourceCode { white-space: pre; position: relative; }
 pre > code.sourceCode > span { display: inline-block; line-height: 1.25; }
 pre > code.sourceCode > span:empty { height: 1.2em; }
@@ -85,22 +89,29 @@ div.csl-indent {
 <script src="../../site_libs/quarto-search/quarto-search.js"></script>
 <meta name="quarto:offset" content="../../">
 <link href="../../favicon.png" rel="icon" type="image/png">
-<script src="../../site_libs/quarto-html/quarto.js"></script>
+<script src="../../site_libs/quarto-html/quarto.js" type="module"></script>
+<script src="../../site_libs/quarto-html/tabsets/tabsets.js" type="module"></script>
 <script src="../../site_libs/quarto-html/popper.min.js"></script>
 <script src="../../site_libs/quarto-html/tippy.umd.min.js"></script>
 <script src="../../site_libs/quarto-html/anchor.min.js"></script>
 <link href="../../site_libs/quarto-html/tippy.css" rel="stylesheet">
-<link href="../../site_libs/quarto-html/quarto-syntax-highlighting.css" rel="stylesheet" id="quarto-text-highlighting-styles">
+<link href="../../site_libs/quarto-html/quarto-syntax-highlighting-15634bcf2e68342d4ad2dfa704d543f6.css" rel="stylesheet" id="quarto-text-highlighting-styles">
 <script src="../../site_libs/bootstrap/bootstrap.min.js"></script>
 <link href="../../site_libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
-<link href="../../site_libs/bootstrap/bootstrap.min.css" rel="stylesheet" id="quarto-bootstrap" data-mode="light">
+<link href="../../site_libs/bootstrap/bootstrap-703c9532075cde06ab04a16b69a0e953.min.css" rel="stylesheet" append-hash="true" id="quarto-bootstrap" data-mode="light">
 <script id="quarto-search-options" type="application/json">{
   "location": "navbar",
   "copy-button": false,
   "collapse-after": 3,
   "panel-placement": "end",
   "type": "overlay",
-  "limit": 20,
+  "limit": 50,
+  "keyboard-shortcut": [
+    "f",
+    "/",
+    "s"
+  ],
+  "show-item-context": false,
   "language": {
     "search-no-results-text": "No results",
     "search-matching-documents-text": "matching documents",
@@ -109,57 +120,87 @@ div.csl-indent {
     "search-more-match-text": "more match in this document",
     "search-more-matches-text": "more matches in this document",
     "search-clear-button-title": "Clear",
+    "search-text-placeholder": "",
     "search-detached-cancel-button-title": "Cancel",
     "search-submit-button-title": "Submit",
     "search-label": "Search"
   }
 }</script>
+<link href="../../site_libs/tabwid-1.1.3/tabwid.css" rel="stylesheet">
+<script src="../../site_libs/tabwid-1.1.3/tabwid.js"></script>
 
-  <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
-  <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml-full.js" type="text/javascript"></script>
+  <script src="https://cdnjs.cloudflare.com/polyfill/v3/polyfill.min.js?features=es6"></script>
+  <script defer="" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml-full.js" type="text/javascript"></script>
+
+<script type="text/javascript">
+const typesetMath = (el) => {
+  if (window.MathJax) {
+    // MathJax Typeset
+    window.MathJax.typeset([el]);
+  } else if (window.katex) {
+    // KaTeX Render
+    var mathElements = el.getElementsByClassName("math");
+    var macros = [];
+    for (var i = 0; i < mathElements.length; i++) {
+      var texText = mathElements[i].firstChild;
+      if (mathElements[i].tagName == "SPAN" && texText && texText.data) {
+        window.katex.render(texText.data, mathElements[i], {
+          displayMode: mathElements[i].classList.contains('display'),
+          throwOnError: false,
+          macros: macros,
+          fleqn: false
+        });
+      }
+    }
+  }
+}
+window.Quarto = {
+  typesetMath
+};
+</script>
 
 <link rel="stylesheet" href="../../styles.css">
 </head>
 
-<body class="nav-fixed fullcontent">
+<body class="nav-fixed fullcontent quarto-light">
 
 <div id="quarto-search-results"></div>
   <header id="quarto-header" class="headroom fixed-top">
-    <nav class="navbar navbar-expand-lg navbar-dark ">
+    <nav class="navbar navbar-expand-lg " data-bs-theme="dark">
       <div class="navbar-container container-fluid">
-      <div class="navbar-brand-container">
+      <div class="navbar-brand-container mx-auto">
     <a class="navbar-brand" href="../../index.html">
     <span class="navbar-title">West End Statistics</span>
     </a>
   </div>
             <div id="quarto-search" class="" title="Search"></div>
-          <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarCollapse" aria-controls="navbarCollapse" aria-expanded="false" aria-label="Toggle navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">
+          <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarCollapse" aria-controls="navbarCollapse" role="menu" aria-expanded="false" aria-label="Toggle navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">
   <span class="navbar-toggler-icon"></span>
 </button>
           <div class="collapse navbar-collapse" id="navbarCollapse">
             <ul class="navbar-nav navbar-nav-scroll ms-auto">
   <li class="nav-item">
-    <a class="nav-link" href="../../about.html" rel="" target="">
- <span class="menu-text">About</span></a>
+    <a class="nav-link" href="../../about.html"> 
+<span class="menu-text">About</span></a>
   </li>  
   <li class="nav-item">
-    <a class="nav-link" href="../../blog.html" rel="" target="">
- <span class="menu-text">Blog</span></a>
+    <a class="nav-link" href="../../blog.html"> 
+<span class="menu-text">Blog</span></a>
   </li>  
   <li class="nav-item compact">
-    <a class="nav-link" href="https://github.com/vitallish/westendstats" rel="" target=""><i class="bi bi-github" role="img">
+    <a class="nav-link" href="https://github.com/vitallish/westendstats"> <i class="bi bi-github" role="img">
 </i> 
- <span class="menu-text"></span></a>
+<span class="menu-text"></span></a>
   </li>  
   <li class="nav-item compact">
-    <a class="nav-link" href="https://fosstodon.org/(vitaly_druker?)" rel="" target=""><i class="bi bi-mastodon" role="img">
+    <a class="nav-link" href="https://fosstodon.org/@vitaly_druker"> <i class="bi bi-mastodon" role="img">
 </i> 
- <span class="menu-text"></span></a>
+<span class="menu-text"></span></a>
   </li>  
 </ul>
+          </div> <!-- /navcollapse -->
             <div class="quarto-navbar-tools">
 </div>
-          </div> <!-- /navcollapse -->
       </div> <!-- /container-fluid -->
     </nav>
 </header>
@@ -199,27 +240,96 @@ div.csl-indent {
   </div>
   
 
+
 </header>
 
+
+<section id="introduction" class="level2">
+<h2 class="anchored" data-anchor-id="introduction">Introduction</h2>
+<p>The SPYRAL HTN-ON MED Expansion study is a confirmatory clinical trial that tested the effect of cather-based renal denervation on systolic blood pressure (SBP) at 6 months time. These types of devices of shown effecitivensss in this area but the trials can be plauged by issues with medication adherence. The FDA recently held an <a href="https://news.medtronic.com/2023-08-23-Medtronic-issues-statement-on-the-FDA-Circulatory-Systems-Devices-Advisory-Panel-vote-for-the-Symplicity-Spyral-Renal-Denervation-System">advisory panel on the device</a> that discussed both the Spyral device (Medtronic) and Paradise device (Recor). Unfortunately, this trial (did not meet it’s primary efficacy endpoint)[https://news.medtronic.com/2022-11-07-SPYRAL-HTN-ON-MED-study-demonstrates-meaningful-clinical-benefits-consistent-with-other-SPYRAL-HTN-renal-denervation-trials] with a posterior probability of 51% for the renal denerivation (RDN) group. Neverthe less, the design of this trial is interesting and deserves a look on its own.</p>
+</section>
 <section id="overview-of-spyral-htn-on" class="level2">
 <h2 class="anchored" data-anchor-id="overview-of-spyral-htn-on">Overview of SPYRAL HTN-ON</h2>
-<p>Try to recreate power analysis in <span class="citation" data-cites="böhm2020">Böhm et al. (<a href="#ref-böhm2020" role="doc-biblioref">2020</a>)</span> - renal denervation trial that uses this method</p>
-<ul>
-<li><p>Specifically the ON-MED group</p></li>
-<li><p>Note that in the table below I transformed the standard errors found in table 3 of the publication for the pilot study.</p>
+<p>The SPYRAL HTN-ON MED study specifically tested the effects of RDN in the presence of antihypertensive medications. This was in contrast to the SPYRAL HTN-OFF MED study where subjects were kept off of medication for until the primary endpoint. The expansion phase built on top of an 80-patient pilot study and was designed to incorporate information from the pilot study using an informative prior.</p>
+<p>However, this informative prior is not used in a typical way but it’s influence on the posterior can be downweighted if the pilot data is different than the observed data in the exapansion phase <span class="citation" data-cites="böhm2020">Böhm et al. (<a href="#ref-böhm2020" role="doc-biblioref">2020</a>)</span>. The amount of weighting is controlled by separate power parmaters, <span class="math inline">\(\alpha_t\)</span> and <span class="math inline">\(\alpha_c\)</span> for the treatment and control arm respectively. These values can range from 0 to 1 - where 1 results in complete pooling of the pilot and expansion data while a power parameter of 0 ignores all pilot study data.</p>
+<p>The power parameters are calculated dynamically and are a transformation of “p values” that compare the historical and current data.</p>
+<p>The details of this calculation are given in the vignette accessed with <code>vignette("bdpnormal-vignette", package = "bayesDP")</code> <span class="citation" data-cites="baysdp">Balcome et al. (<a href="#ref-baysdp" role="doc-biblioref">2022</a>)</span>.</p>
+<section id="published-power-calculations" class="level3">
+<h3 class="anchored" data-anchor-id="published-power-calculations">Published Power Calculations</h3>
+<p>The following parameters were used to calculate power:</p>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb1"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a>parameter_assumptions <span class="ot">&lt;-</span> tibble<span class="sc">::</span><span class="fu">tribble</span>(</span>
-<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a>    <span class="sc">~</span>trial,    <span class="sc">~</span>arm,        <span class="sc">~</span>basline_adjusted_mean, <span class="sc">~</span>baseline_adjusted_sd, <span class="sc">~</span>n,</span>
-<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a>    <span class="st">"pilot"</span>,   <span class="st">"treatment"</span>, <span class="sc">-</span><span class="fl">8.8</span>,                   <span class="fl">1.8</span><span class="sc">*</span><span class="fu">sqrt</span>(<span class="dv">36</span>),          <span class="dv">36</span>,</span>
-<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a>    <span class="st">"pilot"</span>,   <span class="st">"control"</span>,   <span class="sc">-</span><span class="fl">1.8</span>,                   <span class="fl">1.8</span><span class="sc">*</span><span class="fu">sqrt</span>(<span class="dv">36</span>),          <span class="dv">36</span>,</span>
-<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a>    <span class="st">"pivotal"</span>, <span class="st">"treatment"</span>, <span class="sc">-</span><span class="fl">6.8</span>,                   <span class="dv">12</span>,                    <span class="cn">NA</span>,</span>
-<span id="cb1-6"><a href="#cb1-6" aria-hidden="true" tabindex="-1"></a>    <span class="st">"pivotal"</span>, <span class="st">"control"</span>,   <span class="sc">-</span><span class="fl">1.8</span>,                   <span class="dv">12</span>,                    <span class="cn">NA</span></span>
-<span id="cb1-7"><a href="#cb1-7" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb1-8"><a href="#cb1-8" aria-hidden="true" tabindex="-1"></a>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-</div></li>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb1"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(flextable)</span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a>parameter_assumptions <span class="ot">&lt;-</span> tibble<span class="sc">::</span><span class="fu">tribble</span>(</span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a>    <span class="sc">~</span>trial,    <span class="sc">~</span>arm,        <span class="sc">~</span>basline_adjusted_mean, <span class="sc">~</span>baseline_adjusted_sd, <span class="sc">~</span>n,</span>
+<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a>    <span class="st">"pilot"</span>,   <span class="st">"treatment"</span>, <span class="sc">-</span><span class="fl">8.8</span>,                   <span class="fl">1.8</span><span class="sc">*</span><span class="fu">sqrt</span>(<span class="dv">36</span>),          <span class="dv">36</span>,</span>
+<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a>    <span class="st">"pilot"</span>,   <span class="st">"control"</span>,   <span class="sc">-</span><span class="fl">1.8</span>,                   <span class="fl">1.8</span><span class="sc">*</span><span class="fu">sqrt</span>(<span class="dv">36</span>),          <span class="dv">36</span>,</span>
+<span id="cb1-6"><a href="#cb1-6" aria-hidden="true" tabindex="-1"></a>    <span class="st">"pivotal"</span>, <span class="st">"treatment"</span>, <span class="sc">-</span><span class="fl">6.8</span>,                   <span class="dv">12</span>,                    <span class="cn">NA</span>,</span>
+<span id="cb1-7"><a href="#cb1-7" aria-hidden="true" tabindex="-1"></a>    <span class="st">"pivotal"</span>, <span class="st">"control"</span>,   <span class="sc">-</span><span class="fl">1.8</span>,                   <span class="dv">12</span>,                    <span class="cn">NA</span></span>
+<span id="cb1-8"><a href="#cb1-8" aria-hidden="true" tabindex="-1"></a>    </span>
+<span id="cb1-9"><a href="#cb1-9" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb1-10"><a href="#cb1-10" aria-hidden="true" tabindex="-1"></a>parameter_assumptions <span class="sc">|&gt;</span> </span>
+<span id="cb1-11"><a href="#cb1-11" aria-hidden="true" tabindex="-1"></a>    <span class="fu">flextable</span>() <span class="sc">|&gt;</span> </span>
+<span id="cb1-12"><a href="#cb1-12" aria-hidden="true" tabindex="-1"></a>    <span class="fu">set_header_labels</span>(<span class="st">"trial"</span> <span class="ot">=</span> <span class="st">"Trial"</span>,</span>
+<span id="cb1-13"><a href="#cb1-13" aria-hidden="true" tabindex="-1"></a>                     <span class="st">"arm"</span> <span class="ot">=</span> <span class="st">"Arm"</span>,</span>
+<span id="cb1-14"><a href="#cb1-14" aria-hidden="true" tabindex="-1"></a>                     <span class="st">"baseline_adjusted_mean"</span> <span class="ot">=</span> <span class="st">"Baseline Adjusted Mean"</span>,</span>
+<span id="cb1-15"><a href="#cb1-15" aria-hidden="true" tabindex="-1"></a>                     <span class="st">"baseline_adjusted_sd"</span> <span class="ot">=</span> <span class="st">"Baseline Adjusted SD"</span>,</span>
+<span id="cb1-16"><a href="#cb1-16" aria-hidden="true" tabindex="-1"></a>                     <span class="st">"n"</span> <span class="ot">=</span> <span class="st">"Patients"</span>) </span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div id="tbl-params" class="cell quarto-float quarto-figure quarto-figure-center anchored">
+<figure class="quarto-float quarto-float-tbl figure">
+<figcaption class="quarto-float-caption-top quarto-float-caption quarto-float-tbl" id="tbl-params-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Table&nbsp;1: Historical data and assumptions used to calculate power in the pivotal trial
+</figcaption>
+<div aria-describedby="tbl-params-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<div class="cell-output-display">
+<div class="tabwid"><style>.cl-466dafaa{}.cl-4669dbbe{font-family:'DejaVu Sans';font-size:11pt;font-weight:normal;font-style:normal;text-decoration:none;color:rgba(0, 0, 0, 1.00);background-color:transparent;}.cl-466b88e2{margin:0;text-align:left;border-bottom: 0 solid rgba(0, 0, 0, 1.00);border-top: 0 solid rgba(0, 0, 0, 1.00);border-left: 0 solid rgba(0, 0, 0, 1.00);border-right: 0 solid rgba(0, 0, 0, 1.00);padding-bottom:5pt;padding-top:5pt;padding-left:5pt;padding-right:5pt;line-height: 1;background-color:transparent;}.cl-466b88ec{margin:0;text-align:right;border-bottom: 0 solid rgba(0, 0, 0, 1.00);border-top: 0 solid rgba(0, 0, 0, 1.00);border-left: 0 solid rgba(0, 0, 0, 1.00);border-right: 0 solid rgba(0, 0, 0, 1.00);padding-bottom:5pt;padding-top:5pt;padding-left:5pt;padding-right:5pt;line-height: 1;background-color:transparent;}.cl-466b9cf6{width:0.75in;background-color:transparent;vertical-align: middle;border-bottom: 1.5pt solid rgba(102, 102, 102, 1.00);border-top: 1.5pt solid rgba(102, 102, 102, 1.00);border-left: 0 solid rgba(0, 0, 0, 1.00);border-right: 0 solid rgba(0, 0, 0, 1.00);margin-bottom:0;margin-top:0;margin-left:0;margin-right:0;}.cl-466b9cf7{width:0.75in;background-color:transparent;vertical-align: middle;border-bottom: 1.5pt solid rgba(102, 102, 102, 1.00);border-top: 1.5pt solid rgba(102, 102, 102, 1.00);border-left: 0 solid rgba(0, 0, 0, 1.00);border-right: 0 solid rgba(0, 0, 0, 1.00);margin-bottom:0;margin-top:0;margin-left:0;margin-right:0;}.cl-466b9d00{width:0.75in;background-color:transparent;vertical-align: middle;border-bottom: 0 solid rgba(0, 0, 0, 1.00);border-top: 0 solid rgba(0, 0, 0, 1.00);border-left: 0 solid rgba(0, 0, 0, 1.00);border-right: 0 solid rgba(0, 0, 0, 1.00);margin-bottom:0;margin-top:0;margin-left:0;margin-right:0;}.cl-466b9d01{width:0.75in;background-color:transparent;vertical-align: middle;border-bottom: 0 solid rgba(0, 0, 0, 1.00);border-top: 0 solid rgba(0, 0, 0, 1.00);border-left: 0 solid rgba(0, 0, 0, 1.00);border-right: 0 solid rgba(0, 0, 0, 1.00);margin-bottom:0;margin-top:0;margin-left:0;margin-right:0;}.cl-466b9d02{width:0.75in;background-color:transparent;vertical-align: middle;border-bottom: 1.5pt solid rgba(102, 102, 102, 1.00);border-top: 0 solid rgba(0, 0, 0, 1.00);border-left: 0 solid rgba(0, 0, 0, 1.00);border-right: 0 solid rgba(0, 0, 0, 1.00);margin-bottom:0;margin-top:0;margin-left:0;margin-right:0;}.cl-466b9d03{width:0.75in;background-color:transparent;vertical-align: middle;border-bottom: 1.5pt solid rgba(102, 102, 102, 1.00);border-top: 0 solid rgba(0, 0, 0, 1.00);border-left: 0 solid rgba(0, 0, 0, 1.00);border-right: 0 solid rgba(0, 0, 0, 1.00);margin-bottom:0;margin-top:0;margin-left:0;margin-right:0;}</style><table data-quarto-disable-processing="true" class="cl-466dafaa"><thead><tr style="overflow-wrap:break-word;"><th class="cl-466b9cf6"><p class="cl-466b88e2"><span class="cl-4669dbbe">Trial</span></p></th><th class="cl-466b9cf6"><p class="cl-466b88e2"><span class="cl-4669dbbe">Arm</span></p></th><th class="cl-466b9cf7"><p class="cl-466b88ec"><span class="cl-4669dbbe">basline_adjusted_mean</span></p></th><th class="cl-466b9cf7"><p class="cl-466b88ec"><span class="cl-4669dbbe">Baseline Adjusted SD</span></p></th><th class="cl-466b9cf7"><p class="cl-466b88ec"><span class="cl-4669dbbe">Patients</span></p></th></tr></thead><tbody><tr style="overflow-wrap:break-word;"><td class="cl-466b9d00"><p class="cl-466b88e2"><span class="cl-4669dbbe">pilot</span></p></td><td class="cl-466b9d00"><p class="cl-466b88e2"><span class="cl-4669dbbe">treatment</span></p></td><td class="cl-466b9d01"><p class="cl-466b88ec"><span class="cl-4669dbbe">-8.8</span></p></td><td class="cl-466b9d01"><p class="cl-466b88ec"><span class="cl-4669dbbe">10.8</span></p></td><td class="cl-466b9d01"><p class="cl-466b88ec"><span class="cl-4669dbbe">36</span></p></td></tr><tr style="overflow-wrap:break-word;"><td class="cl-466b9d00"><p class="cl-466b88e2"><span class="cl-4669dbbe">pilot</span></p></td><td class="cl-466b9d00"><p class="cl-466b88e2"><span class="cl-4669dbbe">control</span></p></td><td class="cl-466b9d01"><p class="cl-466b88ec"><span class="cl-4669dbbe">-1.8</span></p></td><td class="cl-466b9d01"><p class="cl-466b88ec"><span class="cl-4669dbbe">10.8</span></p></td><td class="cl-466b9d01"><p class="cl-466b88ec"><span class="cl-4669dbbe">36</span></p></td></tr><tr style="overflow-wrap:break-word;"><td class="cl-466b9d00"><p class="cl-466b88e2"><span class="cl-4669dbbe">pivotal</span></p></td><td class="cl-466b9d00"><p class="cl-466b88e2"><span class="cl-4669dbbe">treatment</span></p></td><td class="cl-466b9d01"><p class="cl-466b88ec"><span class="cl-4669dbbe">-6.8</span></p></td><td class="cl-466b9d01"><p class="cl-466b88ec"><span class="cl-4669dbbe">12.0</span></p></td><td class="cl-466b9d01"><p class="cl-466b88ec"><span class="cl-4669dbbe"></span></p></td></tr><tr style="overflow-wrap:break-word;"><td class="cl-466b9d02"><p class="cl-466b88e2"><span class="cl-4669dbbe">pivotal</span></p></td><td class="cl-466b9d02"><p class="cl-466b88e2"><span class="cl-4669dbbe">control</span></p></td><td class="cl-466b9d03"><p class="cl-466b88ec"><span class="cl-4669dbbe">-1.8</span></p></td><td class="cl-466b9d03"><p class="cl-466b88ec"><span class="cl-4669dbbe">12.0</span></p></td><td class="cl-466b9d03"><p class="cl-466b88ec"><span class="cl-4669dbbe"></span></p></td></tr></tbody></table></div>
+</div>
+</div>
+</figure>
+</div>
+</div>
+<p>These values are taken from Table 3 of <span class="citation" data-cites="böhm2020">Böhm et al. (<a href="#ref-böhm2020" role="doc-biblioref">2020</a>)</span>. Note that the publication shows baseline adjusted standard errors for the pilot trial. In <a href="#tbl-params" class="quarto-xref">Table&nbsp;1</a>, the values for the pilot study are given as standard deviations (<span class="math inline">\(SE * \sqrt{n}\)</span>).</p>
+<p>Additionally the authors published the parameters used in the weibull discount function, that transforms the p value to the alpha used to determine how much the historical data effects the posterior. They used shape: <span class="math inline">\(k = 3\)</span> and scale: <span class="math inline">\(\lambda = .25\)</span>.</p>
+<p>Power for these assumptions is listed as 96% with 221 subjects, Type I error is given as 3%.</p>
+</section>
+<section id="current-limitations-of-analysis-below" class="level3">
+<h3 class="anchored" data-anchor-id="current-limitations-of-analysis-below">Current Limitations of analysis below</h3>
+<p>The trial has few other aspects that are currently not explored in this post:</p>
+<ul>
+<li>An interim analysis was precepecified in HTN-ON MED at 149 and 187 subjects. This is not implemented below as the expected sample size should be smaller - but it should (hopefully) not affect overal power/type I error.</li>
+<li>Estimates for effects in each arm are adjusted for baseline values as shown in the equation below. However, simulations here are done using marginal estimates for simplicity.</li>
 </ul>
-<p>Weibull discount functyion parameters that were used: Shape <span class="math inline">\(k = 3\)</span>, scale <span class="math inline">\(\lambda =0.25\)</span></p>
-<p>Interim analyses will happen at 175 and 220 subjects</p>
+<p><span class="math display">\[
+y_i = \mu_t I(i \in t) + \mu_c I(i \in c) + x_i\beta  + \epsilon_i; \epsilon \sim N(0, sigma^2)
+\]</span></p>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb2"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a>simulate_data <span class="ot">&lt;-</span> <span class="cf">function</span>(n, mu_t, mu_c, beta_p, mu_x_i, sigma_x_i, sigma_2) {</span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a>    n_c <span class="ot">&lt;-</span> <span class="fu">round</span>(n<span class="sc">/</span><span class="dv">2</span>)</span>
+<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a>    n_t <span class="ot">&lt;-</span> n <span class="sc">-</span> n_c</span>
+<span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-5"><a href="#cb2-5" aria-hidden="true" tabindex="-1"></a>    t_i <span class="ot">&lt;-</span> <span class="fu">rep</span>(<span class="fu">c</span>(<span class="dv">0</span>, <span class="dv">1</span>), <span class="fu">c</span>(n_c, n_t))</span>
+<span id="cb2-6"><a href="#cb2-6" aria-hidden="true" tabindex="-1"></a>    <span class="co"># baseline measurement</span></span>
+<span id="cb2-7"><a href="#cb2-7" aria-hidden="true" tabindex="-1"></a>    mu_x_i <span class="ot">&lt;-</span> <span class="fu">rnorm</span>(n, <span class="at">mean =</span> mu_x_i, <span class="at">sd =</span> sigma_x_i)</span>
+<span id="cb2-8"><a href="#cb2-8" aria-hidden="true" tabindex="-1"></a>    <span class="co"># mean centered baseline</span></span>
+<span id="cb2-9"><a href="#cb2-9" aria-hidden="true" tabindex="-1"></a>    x_i <span class="ot">&lt;-</span> <span class="fu">scale</span>(mu_x_i, <span class="at">scale =</span> <span class="cn">FALSE</span>)</span>
+<span id="cb2-10"><a href="#cb2-10" aria-hidden="true" tabindex="-1"></a>    <span class="co"># error term</span></span>
+<span id="cb2-11"><a href="#cb2-11" aria-hidden="true" tabindex="-1"></a>    epsilon_i <span class="ot">&lt;-</span> <span class="fu">rnorm</span>(<span class="dv">0</span>, <span class="at">mean =</span> <span class="dv">0</span>, <span class="at">sd =</span> <span class="fu">sqrt</span>(sigma_2))</span>
+<span id="cb2-12"><a href="#cb2-12" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-13"><a href="#cb2-13" aria-hidden="true" tabindex="-1"></a>    y_i <span class="ot">&lt;-</span> mu_t <span class="sc">*</span> (t_i <span class="sc">==</span> <span class="dv">1</span>) <span class="sc">+</span> mu_c <span class="sc">*</span> (t_i <span class="sc">==</span> <span class="dv">0</span>) <span class="sc">+</span> beta_p <span class="sc">*</span> x_i <span class="sc">+</span> epsilon_i</span>
+<span id="cb2-14"><a href="#cb2-14" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-15"><a href="#cb2-15" aria-hidden="true" tabindex="-1"></a>    out <span class="ot">&lt;-</span> tibble<span class="sc">::</span><span class="fu">tibble</span>(</span>
+<span id="cb2-16"><a href="#cb2-16" aria-hidden="true" tabindex="-1"></a>        t_i,</span>
+<span id="cb2-17"><a href="#cb2-17" aria-hidden="true" tabindex="-1"></a>        mu_x_i,</span>
+<span id="cb2-18"><a href="#cb2-18" aria-hidden="true" tabindex="-1"></a>        x_i,</span>
+<span id="cb2-19"><a href="#cb2-19" aria-hidden="true" tabindex="-1"></a>        epsilon_i,</span>
+<span id="cb2-20"><a href="#cb2-20" aria-hidden="true" tabindex="-1"></a>        y_i</span>
+<span id="cb2-21"><a href="#cb2-21" aria-hidden="true" tabindex="-1"></a>    )</span>
+<span id="cb2-22"><a href="#cb2-22" aria-hidden="true" tabindex="-1"></a>}</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</div>
+<ul>
+<li><span class="math inline">\(y_i\)</span> is change from baseline in BP</li>
+<li><span class="math inline">\(I(i \in t)\)</span> is 1 if subject <em>i</em> is in treatemet</li>
+<li><span class="math inline">\(\beta\)</span> regression coefficient for the adjustment in mean-centered baseline BP, <span class="math inline">\(x_i\)</span></li>
+</ul>
 <p>Treatment effect defined by:</p>
 <p><span class="math inline">\(\mu = \mu_t - \mu_c\)</span></p>
 <p>Trial success criteria:</p>
@@ -230,6 +340,7 @@ P(\mu &lt;0 ) \gt .975
 <p><span class="math display">\[
 P(\mu &lt;0 ) \lt .05
 \]</span></p>
+</section>
 <section id="trial-performance-characteristics" class="level3">
 <h3 class="anchored" data-anchor-id="trial-performance-characteristics">Trial Performance Characteristics</h3>
 <ul>
@@ -242,7 +353,7 @@ P(\mu &lt;0 ) \lt .05
 <section id="other-publications" class="level2">
 <h2 class="anchored" data-anchor-id="other-publications">Other publications</h2>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb2"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(bayesDP) <span class="co"># package that was used in the clinical trial</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb3"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(bayesDP) <span class="co"># package that was used in the clinical trial</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <div class="cell-output cell-output-stderr">
 <pre><code>Loading required package: ggplot2</code></pre>
 </div>
@@ -251,62 +362,2305 @@ P(\mu &lt;0 ) \lt .05
 </div>
 </div>
 <p><span class="citation" data-cites="haddad2017">Haddad et al. (<a href="#ref-haddad2017" role="doc-biblioref">2017</a>)</span> for perspective from device community</p>
-<p>specifics about dynamic borrowing <span class="citation" data-cites="viele2014">Viele et al. (<a href="#ref-viele2014" role="doc-biblioref">2014</a>)</span></p>
-<p>test</p>
+<p>Overview of different borrow strategies can be found here <span class="citation" data-cites="viele2014">Viele et al. (<a href="#ref-viele2014" role="doc-biblioref">2014</a>)</span>. It didn’t have details on how to implement dynamic borrowing in the way the <span class="citation" data-cites="böhm2020">Böhm et al. (<a href="#ref-böhm2020" role="doc-biblioref">2020</a>)</span> did.</p>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb6"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a><span class="co"># total subjects = 221</span></span>
+<span id="cb6-2"><a href="#cb6-2" aria-hidden="true" tabindex="-1"></a><span class="co"># approx 73 control</span></span>
+<span id="cb6-3"><a href="#cb6-3" aria-hidden="true" tabindex="-1"></a><span class="co"># 148 active (2:1 randomization)</span></span>
+<span id="cb6-4"><a href="#cb6-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-5"><a href="#cb6-5" aria-hidden="true" tabindex="-1"></a>simulate_data <span class="ot">&lt;-</span> <span class="cf">function</span>(</span>
+<span id="cb6-6"><a href="#cb6-6" aria-hidden="true" tabindex="-1"></a>    <span class="at">N_t =</span> <span class="dv">148</span>, <span class="at">mu_t =</span> <span class="sc">-</span><span class="fl">6.8</span>, <span class="at">sigma_t =</span> <span class="dv">12</span>, </span>
+<span id="cb6-7"><a href="#cb6-7" aria-hidden="true" tabindex="-1"></a>    <span class="at">N_c =</span> <span class="dv">74</span>, <span class="at">mu_c =</span> <span class="sc">-</span><span class="fl">1.8</span>, <span class="at">sigma_c =</span> sigma_t) {</span>
+<span id="cb6-8"><a href="#cb6-8" aria-hidden="true" tabindex="-1"></a>    </span>
+<span id="cb6-9"><a href="#cb6-9" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-10"><a href="#cb6-10" aria-hidden="true" tabindex="-1"></a>    observed_treatment <span class="ot">&lt;-</span> <span class="fu">rnorm</span>(N_t, <span class="at">mean =</span> mu_t, <span class="at">sd =</span> sigma_t)</span>
+<span id="cb6-11"><a href="#cb6-11" aria-hidden="true" tabindex="-1"></a>    observed_control <span class="ot">&lt;-</span> <span class="fu">rnorm</span>(N_c, <span class="at">mean =</span> mu_c, <span class="at">sd =</span> sigma_c)</span>
+<span id="cb6-12"><a href="#cb6-12" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-13"><a href="#cb6-13" aria-hidden="true" tabindex="-1"></a>    tibble<span class="sc">::</span><span class="fu">tibble</span>(</span>
+<span id="cb6-14"><a href="#cb6-14" aria-hidden="true" tabindex="-1"></a>        <span class="at">trt_i =</span> <span class="fu">c</span>(<span class="fu">rep</span>(<span class="dv">1</span>, N_t), <span class="fu">rep</span>(<span class="dv">0</span>, N_c)),</span>
+<span id="cb6-15"><a href="#cb6-15" aria-hidden="true" tabindex="-1"></a>        <span class="at">baseline_adjusted_mean =</span> <span class="fu">c</span>(observed_treatment, observed_control)</span>
+<span id="cb6-16"><a href="#cb6-16" aria-hidden="true" tabindex="-1"></a>    )    </span>
+<span id="cb6-17"><a href="#cb6-17" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-18"><a href="#cb6-18" aria-hidden="true" tabindex="-1"></a>}</span>
+<span id="cb6-19"><a href="#cb6-19" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-20"><a href="#cb6-20" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-21"><a href="#cb6-21" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(collapse)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stderr">
+<pre><code>collapse 2.1.7, see ?`collapse-package` or ?`collapse-documentation`</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>
+Attaching package: 'collapse'</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>The following object is masked from 'package:stats':
+
+    D</code></pre>
+</div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb10"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true" tabindex="-1"></a>d <span class="ot">&lt;-</span> <span class="fu">simulate_data</span>()</span>
+<span id="cb10-2"><a href="#cb10-2" aria-hidden="true" tabindex="-1"></a>obs_stats <span class="ot">&lt;-</span> d <span class="sc">|&gt;</span> </span>
+<span id="cb10-3"><a href="#cb10-3" aria-hidden="true" tabindex="-1"></a>    <span class="fu">fgroup_by</span>(trt_i) <span class="sc">|&gt;</span> </span>
+<span id="cb10-4"><a href="#cb10-4" aria-hidden="true" tabindex="-1"></a>    <span class="fu">fsummarise</span>(<span class="at">sd =</span> <span class="fu">sd</span>(baseline_adjusted_mean),</span>
+<span id="cb10-5"><a href="#cb10-5" aria-hidden="true" tabindex="-1"></a>               <span class="at">mean =</span> <span class="fu">fmean</span>(baseline_adjusted_mean),</span>
+<span id="cb10-6"><a href="#cb10-6" aria-hidden="true" tabindex="-1"></a>               <span class="at">N =</span> <span class="fu">length</span>(baseline_adjusted_mean)) <span class="sc">|&gt;</span> </span>
+<span id="cb10-7"><a href="#cb10-7" aria-hidden="true" tabindex="-1"></a>    <span class="fu">rsplit</span>(<span class="sc">~</span>trt_i)</span>
+<span id="cb10-8"><a href="#cb10-8" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb10-9"><a href="#cb10-9" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb10-10"><a href="#cb10-10" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb10-11"><a href="#cb10-11" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb10-12"><a href="#cb10-12" aria-hidden="true" tabindex="-1"></a>first_sims <span class="ot">&lt;-</span> <span class="fu">lapply</span>(<span class="dv">1</span><span class="sc">:</span><span class="fl">1e2</span>, <span class="cf">function</span>(.i) {</span>
+<span id="cb10-13"><a href="#cb10-13" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb10-14"><a href="#cb10-14" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb10-15"><a href="#cb10-15" aria-hidden="true" tabindex="-1"></a>observed_treatment <span class="ot">&lt;-</span> <span class="fu">rnorm</span>(<span class="dv">148</span>, <span class="at">mean =</span> <span class="sc">-</span><span class="fl">6.8</span>, <span class="at">sd =</span> <span class="dv">12</span>)</span>
+<span id="cb10-16"><a href="#cb10-16" aria-hidden="true" tabindex="-1"></a>observed_control <span class="ot">&lt;-</span> <span class="fu">rnorm</span>(<span class="dv">73</span>, <span class="at">mean =</span> <span class="sc">-</span><span class="fl">1.8</span>, <span class="at">sd =</span> <span class="dv">12</span>)</span>
+<span id="cb10-17"><a href="#cb10-17" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb10-18"><a href="#cb10-18" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb10-19"><a href="#cb10-19" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb10-20"><a href="#cb10-20" aria-hidden="true" tabindex="-1"></a>output <span class="ot">&lt;-</span> bayesDP<span class="sc">::</span><span class="fu">bdpnormal</span>(</span>
+<span id="cb10-21"><a href="#cb10-21" aria-hidden="true" tabindex="-1"></a>    <span class="at">mu_t  =</span> <span class="fu">mean</span>(observed_treatment),</span>
+<span id="cb10-22"><a href="#cb10-22" aria-hidden="true" tabindex="-1"></a>    <span class="at">sigma_t =</span> <span class="fu">sd</span>(observed_treatment),</span>
+<span id="cb10-23"><a href="#cb10-23" aria-hidden="true" tabindex="-1"></a>    <span class="at">N_t =</span> <span class="fu">length</span>(observed_treatment),</span>
+<span id="cb10-24"><a href="#cb10-24" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb10-25"><a href="#cb10-25" aria-hidden="true" tabindex="-1"></a>    <span class="at">mu0_t =</span> <span class="sc">-</span><span class="fl">8.8</span>,</span>
+<span id="cb10-26"><a href="#cb10-26" aria-hidden="true" tabindex="-1"></a>    <span class="at">sigma0_t =</span> <span class="fl">1.8</span><span class="sc">*</span><span class="fu">sqrt</span>(<span class="dv">36</span>),</span>
+<span id="cb10-27"><a href="#cb10-27" aria-hidden="true" tabindex="-1"></a>    <span class="at">N0_t =</span> <span class="dv">36</span>,</span>
+<span id="cb10-28"><a href="#cb10-28" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb10-29"><a href="#cb10-29" aria-hidden="true" tabindex="-1"></a>    <span class="at">mu_c =</span> <span class="fu">mean</span>(observed_control),</span>
+<span id="cb10-30"><a href="#cb10-30" aria-hidden="true" tabindex="-1"></a>    <span class="at">sigma_c =</span> <span class="fu">sd</span>(observed_control),</span>
+<span id="cb10-31"><a href="#cb10-31" aria-hidden="true" tabindex="-1"></a>    <span class="at">N_c =</span> <span class="fu">length</span>(observed_control),</span>
+<span id="cb10-32"><a href="#cb10-32" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb10-33"><a href="#cb10-33" aria-hidden="true" tabindex="-1"></a>    <span class="at">mu0_c =</span> <span class="sc">-</span><span class="fl">1.8</span>,</span>
+<span id="cb10-34"><a href="#cb10-34" aria-hidden="true" tabindex="-1"></a>    <span class="at">sigma0_c =</span> <span class="fl">1.8</span><span class="sc">*</span><span class="fu">sqrt</span>(<span class="dv">36</span>),</span>
+<span id="cb10-35"><a href="#cb10-35" aria-hidden="true" tabindex="-1"></a>    <span class="at">N0_c =</span> <span class="dv">36</span>,</span>
+<span id="cb10-36"><a href="#cb10-36" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb10-37"><a href="#cb10-37" aria-hidden="true" tabindex="-1"></a>    <span class="at">discount_function =</span> <span class="st">"weibull"</span>,</span>
+<span id="cb10-38"><a href="#cb10-38" aria-hidden="true" tabindex="-1"></a>    <span class="at">weibull_scale =</span> .<span class="dv">025</span>,</span>
+<span id="cb10-39"><a href="#cb10-39" aria-hidden="true" tabindex="-1"></a>    <span class="at">weibull_shape =</span> <span class="dv">3</span></span>
+<span id="cb10-40"><a href="#cb10-40" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb10-41"><a href="#cb10-41" aria-hidden="true" tabindex="-1"></a>treatment_means <span class="ot">&lt;-</span> <span class="fu">sapply</span>(output<span class="sc">$</span>posterior_treatment, mean)</span>
+<span id="cb10-42"><a href="#cb10-42" aria-hidden="true" tabindex="-1"></a>control_means <span class="ot">&lt;-</span> <span class="fu">sapply</span>(output<span class="sc">$</span>posterior_control, mean)</span>
+<span id="cb10-43"><a href="#cb10-43" aria-hidden="true" tabindex="-1"></a>post_prob_p <span class="ot">&lt;-</span> <span class="fu">mean</span>(output<span class="sc">$</span>final<span class="sc">$</span>posterior <span class="sc">&lt;</span> <span class="dv">0</span>)</span>
+<span id="cb10-44"><a href="#cb10-44" aria-hidden="true" tabindex="-1"></a><span class="co"># post_prob_p &gt; .975</span></span>
+<span id="cb10-45"><a href="#cb10-45" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb10-46"><a href="#cb10-46" aria-hidden="true" tabindex="-1"></a><span class="fu">list</span>(</span>
+<span id="cb10-47"><a href="#cb10-47" aria-hidden="true" tabindex="-1"></a>    <span class="at">treatment_means =</span> treatment_means,</span>
+<span id="cb10-48"><a href="#cb10-48" aria-hidden="true" tabindex="-1"></a>    <span class="at">control_means =</span> control_means,</span>
+<span id="cb10-49"><a href="#cb10-49" aria-hidden="true" tabindex="-1"></a>    <span class="at">post_prob_p  =</span> post_prob_p</span>
+<span id="cb10-50"><a href="#cb10-50" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb10-51"><a href="#cb10-51" aria-hidden="true" tabindex="-1"></a>}) </span>
+<span id="cb10-52"><a href="#cb10-52" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb10-53"><a href="#cb10-53" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb10-54"><a href="#cb10-54" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb10-55"><a href="#cb10-55" aria-hidden="true" tabindex="-1"></a><span class="fu">get_elem</span>(first_sims, <span class="st">"treatment_means"</span>) <span class="sc">|&gt;</span> <span class="fu">unlist2d</span>() <span class="sc">|&gt;</span>  <span class="fu">as.data.frame</span>() <span class="sc">|&gt;</span> </span>
+<span id="cb10-56"><a href="#cb10-56" aria-hidden="true" tabindex="-1"></a><span class="fu">with</span>(<span class="fu">plot</span>(posterior_flat_mu, alpha_discount))</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="index_files/figure-html/unnamed-chunk-3-1.png" class="img-fluid figure-img" width="672"></p>
+</figure>
+</div>
+</div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb11"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb11-1"><a href="#cb11-1" aria-hidden="true" tabindex="-1"></a>first_sims</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>[[1]]
+[[1]]$treatment_means
+       alpha_discount                 p_hat          posterior_mu 
+            0.9479213             0.4320747            -7.7151948 
+     posterior_sigma2     posterior_flat_mu posterior_flat_sigma2 
+            0.7328096            -7.4356332           137.5705433 
+             prior_mu          prior_sigma2 
+           -8.7972005           123.3262664 
+
+[[1]]$control_means
+       alpha_discount                 p_hat          posterior_mu 
+            0.8497788             0.3067321            -3.7900469 
+     posterior_sigma2     posterior_flat_mu posterior_flat_sigma2 
+            1.1678090            -4.5494491           119.7796076 
+             prior_mu          prior_sigma2 
+           -1.7554139           123.7921413 
+
+[[1]]$post_prob_p
+[1] 0.9963
+
+
+[[2]]
+[[2]]$treatment_means
+       alpha_discount                 p_hat          posterior_mu 
+            0.9274622             0.3964920            -7.4779701 
+     posterior_sigma2     posterior_flat_mu posterior_flat_sigma2 
+            0.9165754            -7.0253909           182.2939591 
+             prior_mu          prior_sigma2 
+           -8.8128896           123.3393090 
+
+[[2]]$control_means
+       alpha_discount                 p_hat          posterior_mu 
+            0.9702356             0.4750862            -2.3057690 
+     posterior_sigma2     posterior_flat_mu posterior_flat_sigma2 
+            1.5069019            -2.7370104           195.6631196 
+             prior_mu          prior_sigma2 
+           -1.7835172           124.0680967 
+
+[[2]]$post_prob_p
+[1] 0.9992
+
+
+[[3]]
+[[3]]$treatment_means
+       alpha_discount                 p_hat          posterior_mu 
+            0.9145407             0.3830045            -7.3233257 
+     posterior_sigma2     posterior_flat_mu posterior_flat_sigma2 
+            0.7015545            -6.9561799           128.6479178 
+             prior_mu          prior_sigma2 
+           -8.8036719           124.2335815 
+
+[[3]]$control_means
+       alpha_discount                 p_hat          posterior_mu 
+            0.9658534             0.4695602            -1.1568407 
+     posterior_sigma2     posterior_flat_mu posterior_flat_sigma2 
+            1.6151984            -0.6693946           219.7534630 
+             prior_mu          prior_sigma2 
+           -1.7829061           124.2780926 
+
+[[3]]$post_prob_p
+[1] 0.9999
+
+
+[[4]]
+[[4]]$treatment_means
+       alpha_discount                 p_hat          posterior_mu 
+            0.7525563             0.2232725            -6.0407946 
+     posterior_sigma2     posterior_flat_mu posterior_flat_sigma2 
+            0.8794985            -5.4219467           160.2875321 
+             prior_mu          prior_sigma2 
+           -8.8024968           123.8114998 
+
+[[4]]$control_means
+       alpha_discount                 p_hat          posterior_mu 
+           0.93688429            0.41844148           -0.64983400 
+     posterior_sigma2     posterior_flat_mu posterior_flat_sigma2 
+           1.28761892           -0.01466061          146.77233956 
+             prior_mu          prior_sigma2 
+          -1.79594472          124.02258496 
+
+[[4]]$post_prob_p
+[1] 0.9999
+
+
+[[5]]
+[[5]]$treatment_means
+       alpha_discount                 p_hat          posterior_mu 
+            0.9255239             0.4014902            -7.3983475 
+     posterior_sigma2     posterior_flat_mu posterior_flat_sigma2 
+            0.8612875            -6.9685096           167.7140740 
+             prior_mu          prior_sigma2 
+           -8.7710469           123.6065404 
+
+[[5]]$control_means
+       alpha_discount                 p_hat          posterior_mu 
+            0.9775225             0.5037216            -1.8302109 
+     posterior_sigma2     posterior_flat_mu posterior_flat_sigma2 
+            1.1039784            -1.8361106           120.1835145 
+             prior_mu          prior_sigma2 
+           -1.7714935           124.0263304 
+
+[[5]]$post_prob_p
+[1] 1
+
+
+[[6]]
+[[6]]$treatment_means
+       alpha_discount                 p_hat          posterior_mu 
+            0.9323424             0.4145242            -7.5597562 
+     posterior_sigma2     posterior_flat_mu posterior_flat_sigma2 
+            0.7686752            -7.2223610           145.2387275 
+             prior_mu          prior_sigma2 
+           -8.8128435           123.6468947 
+
+[[6]]$control_means
+       alpha_discount                 p_hat          posterior_mu 
+            0.8991507             0.3658131            -3.3544336 
+     posterior_sigma2     posterior_flat_mu posterior_flat_sigma2 
+            1.2772625            -4.1013275           140.8976200 
+             prior_mu          prior_sigma2 
+           -1.8369860           123.3015733 
+
+[[6]]$post_prob_p
+[1] 0.9972
+
+
+[[7]]
+[[7]]$treatment_means
+       alpha_discount                 p_hat          posterior_mu 
+            0.9049808             0.3675629            -7.2073712 
+     posterior_sigma2     posterior_flat_mu posterior_flat_sigma2 
+            0.8255589            -6.7423652           157.1500738 
+             prior_mu          prior_sigma2 
+           -8.7923556           124.1085437 
+
+[[7]]$control_means
+       alpha_discount                 p_hat          posterior_mu 
+            0.9682264             0.4803602            -1.2589157 
+     posterior_sigma2     posterior_flat_mu posterior_flat_sigma2 
+            1.3329519            -0.9407768           159.8134331 
+             prior_mu          prior_sigma2 
+           -1.8121558           123.1422287 
+
+[[7]]$post_prob_p
+[1] 1
+
+
+[[8]]
+[[8]]$treatment_means
+       alpha_discount                 p_hat          posterior_mu 
+            0.9131236             0.3849635            -7.3478520 
+     posterior_sigma2     posterior_flat_mu posterior_flat_sigma2 
+            0.8408317            -6.9012043           161.6704331 
+             prior_mu          prior_sigma2 
+           -8.7754545           123.6088434 
+
+[[8]]$control_means
+       alpha_discount                 p_hat          posterior_mu 
+            0.9742269             0.4871876            -2.1073561 
+     posterior_sigma2     posterior_flat_mu posterior_flat_sigma2 
+            1.2733355            -2.2705303           149.0799595 
+             prior_mu          prior_sigma2 
+           -1.7740992           124.1224797 
+
+[[8]]$post_prob_p
+[1] 0.9996
+
+
+[[9]]
+[[9]]$treatment_means
+       alpha_discount                 p_hat          posterior_mu 
+            0.9382160             0.4147155            -7.5839646 
+     posterior_sigma2     posterior_flat_mu posterior_flat_sigma2 
+            0.8361170            -7.2078078           162.2083440 
+             prior_mu          prior_sigma2 
+           -8.8205923           123.4504326 
+
+[[9]]$control_means
+       alpha_discount                 p_hat          posterior_mu 
+            0.9686987             0.4743705            -1.2290402 
+     posterior_sigma2     posterior_flat_mu posterior_flat_sigma2 
+            1.4068039            -0.8206831           174.5842654 
+             prior_mu          prior_sigma2 
+           -1.7694628           123.5631908 
+
+[[9]]$post_prob_p
+[1] 1
+
+
+[[10]]
+[[10]]$treatment_means
+       alpha_discount                 p_hat          posterior_mu 
+            0.9668991             0.4794000            -8.2417730 
+     posterior_sigma2     posterior_flat_mu posterior_flat_sigma2 
+            0.7556150            -8.0436754           143.9539664 
+             prior_mu          prior_sigma2 
+           -8.8114732           123.5623958 
+
+[[10]]$control_means
+       alpha_discount                 p_hat          posterior_mu 
+            0.9758647             0.4947834            -1.7954701 
+     posterior_sigma2     posterior_flat_mu posterior_flat_sigma2 
+            1.3509350            -1.8030570           164.1273124 
+             prior_mu          prior_sigma2 
+           -1.8061290           123.8356836 
+
+[[10]]$post_prob_p
+[1] 1
+
+
+[[11]]
+[[11]]$treatment_means
+       alpha_discount                 p_hat          posterior_mu 
+            0.6200030             0.1495862            -5.2624175 
+     posterior_sigma2     posterior_flat_mu posterior_flat_sigma2 
+            0.7473405            -4.7470316           126.9603313 
+             prior_mu          prior_sigma2 
+           -8.8164555           123.5511670 
+
+[[11]]$control_means
+       alpha_discount                 p_hat          posterior_mu 
+            0.9756438             0.4899692            -2.1310281 
+     posterior_sigma2     posterior_flat_mu posterior_flat_sigma2 
+            1.3956232            -2.3797901           173.4403858 
+             prior_mu          prior_sigma2 
+           -1.8028549           123.7176767 
+
+[[11]]$post_prob_p
+[1] 0.9788
+
+
+[[12]]
+[[12]]$treatment_means
+       alpha_discount                 p_hat          posterior_mu 
+            0.9694851             0.4794434            -8.2134911 
+     posterior_sigma2     posterior_flat_mu posterior_flat_sigma2 
+            0.8493346            -8.0130510           167.7352018 
+             prior_mu          prior_sigma2 
+           -8.8043049           123.6374899 
+
+[[12]]$control_means
+       alpha_discount                 p_hat          posterior_mu 
+            0.9241184             0.3971008            -0.5220704 
+     posterior_sigma2     posterior_flat_mu posterior_flat_sigma2 
+            1.2299677             0.1146664           135.6136452 
+             prior_mu          prior_sigma2 
+           -1.8034811           123.8114954 
+
+[[12]]$post_prob_p
+[1] 1
+
+
+[[13]]
+[[13]]$treatment_means
+       alpha_discount                 p_hat          posterior_mu 
+            0.8950094             0.3585239            -7.0863858 
+     posterior_sigma2     posterior_flat_mu posterior_flat_sigma2 
+            0.7995891            -6.6274776           150.5177479 
+             prior_mu          prior_sigma2 
+           -8.7716901           123.9809051 
+
+[[13]]$control_means
+       alpha_discount                 p_hat          posterior_mu 
+            0.9731701             0.4878000            -2.1536160 
+     posterior_sigma2     posterior_flat_mu posterior_flat_sigma2 
+            1.3544580            -2.3890961           164.5846427 
+             prior_mu          prior_sigma2 
+           -1.7955665           123.7805321 
+
+[[13]]$post_prob_p
+[1] 0.9995
+
+
+[[14]]
+[[14]]$treatment_means
+       alpha_discount                 p_hat          posterior_mu 
+            0.9128596             0.3788837            -7.2715819 
+     posterior_sigma2     posterior_flat_mu posterior_flat_sigma2 
+            0.7919090            -6.8541544           149.7509791 
+             prior_mu          prior_sigma2 
+           -8.8109335           123.7068672 
+
+[[14]]$control_means
+       alpha_discount                 p_hat          posterior_mu 
+            0.9769666             0.5009433            -1.9868842 
+     posterior_sigma2     posterior_flat_mu posterior_flat_sigma2 
+            1.3501714            -2.0842199           164.0363327 
+             prior_mu          prior_sigma2 
+           -1.7719542           124.2129495 
+
+[[14]]$post_prob_p
+[1] 0.9997
+
+
+[[15]]
+[[15]]$treatment_means
+       alpha_discount                 p_hat          posterior_mu 
+            0.9570821             0.4552705            -7.8908778 
+     posterior_sigma2     posterior_flat_mu posterior_flat_sigma2 
+            0.5967365            -7.6801313           107.0623596 
+             prior_mu          prior_sigma2 
+           -8.7900089           123.6431771 
+
+[[15]]$control_means
+       alpha_discount                 p_hat          posterior_mu 
+            0.9763237             0.4934475            -2.0112761 
+     posterior_sigma2     posterior_flat_mu posterior_flat_sigma2 
+            1.4587243            -2.2163036           186.5861151 
+             prior_mu          prior_sigma2 
+           -1.8096921           123.8618544 
+
+[[15]]$post_prob_p
+[1] 0.9998
+
+
+[[16]]
+[[16]]$treatment_means
+       alpha_discount                 p_hat          posterior_mu 
+            0.9722157             0.4857052            -8.3047067 
+     posterior_sigma2     posterior_flat_mu posterior_flat_sigma2 
+            0.7754083            -8.1703930           149.0969788 
+             prior_mu          prior_sigma2 
+           -8.8021261           123.8059695 
+
+[[16]]$control_means
+       alpha_discount                 p_hat          posterior_mu 
+            0.9650722             0.4674385            -1.0820037 
+     posterior_sigma2     posterior_flat_mu posterior_flat_sigma2 
+            1.1616866            -0.7498783           128.7030346 
+             prior_mu          prior_sigma2 
+           -1.7819627           123.5690913 
+
+[[16]]$post_prob_p
+[1] 1
+
+
+[[17]]
+[[17]]$treatment_means
+       alpha_discount                 p_hat          posterior_mu 
+            0.5700015             0.1255226            -4.9896825 
+     posterior_sigma2     posterior_flat_mu posterior_flat_sigma2 
+            0.9748734            -4.3433135           169.6070395 
+             prior_mu          prior_sigma2 
+           -8.8489409           123.4439250 
+
+[[17]]$control_means
+       alpha_discount                 p_hat          posterior_mu 
+            0.9634450             0.4669054            -2.4367898 
+     posterior_sigma2     posterior_flat_mu posterior_flat_sigma2 
+            1.5871721            -2.9454817           212.5776928 
+             prior_mu          prior_sigma2 
+           -1.8216400           124.1960872 
+
+[[17]]$post_prob_p
+[1] 0.9313
+
+
+[[18]]
+[[18]]$treatment_means
+       alpha_discount                 p_hat          posterior_mu 
+            0.9791731             0.4993760            -8.5268846 
+     posterior_sigma2     posterior_flat_mu posterior_flat_sigma2 
+            0.7840176            -8.4471104           151.6445451 
+             prior_mu          prior_sigma2 
+           -8.7828930           123.7662510 
+
+[[18]]$control_means
+       alpha_discount                 p_hat          posterior_mu 
+            0.9728517             0.4885771            -1.4011770 
+     posterior_sigma2     posterior_flat_mu posterior_flat_sigma2 
+            1.4197154            -1.1247214           177.7720265 
+             prior_mu          prior_sigma2 
+           -1.8089805           123.7028371 
+
+[[18]]$post_prob_p
+[1] 1
+
+
+[[19]]
+[[19]]$treatment_means
+       alpha_discount                 p_hat          posterior_mu 
+            0.9537024             0.4458782            -7.8137295 
+     posterior_sigma2     posterior_flat_mu posterior_flat_sigma2 
+            0.7111610            -7.5464627           132.7781808 
+             prior_mu          prior_sigma2 
+           -8.7872717           123.4664722 
+
+[[19]]$control_means
+       alpha_discount                 p_hat          posterior_mu 
+            0.9751402             0.5013408            -1.9574482 
+     posterior_sigma2     posterior_flat_mu posterior_flat_sigma2 
+            1.5060119            -2.0946202           196.9901487 
+             prior_mu          prior_sigma2 
+           -1.8107604           123.5996054 
+
+[[19]]$post_prob_p
+[1] 1
+
+
+[[20]]
+[[20]]$treatment_means
+       alpha_discount                 p_hat          posterior_mu 
+            0.9317004             0.4048995            -7.4827873 
+     posterior_sigma2     posterior_flat_mu posterior_flat_sigma2 
+            0.7193340            -7.1398737           133.6677656 
+             prior_mu          prior_sigma2 
+           -8.8160261           123.5192213 
+
+[[20]]$control_means
+       alpha_discount                 p_hat          posterior_mu 
+            0.9730387             0.4882939            -1.3998624 
+     posterior_sigma2     posterior_flat_mu posterior_flat_sigma2 
+            1.3625502            -1.1613604           165.7211047 
+             prior_mu          prior_sigma2 
+           -1.7894647           124.1570469 
+
+[[20]]$post_prob_p
+[1] 0.9999
+
+
+[[21]]
+[[21]]$treatment_means
+       alpha_discount                 p_hat          posterior_mu 
+            0.9104880             0.3788244            -7.1917559 
+     posterior_sigma2     posterior_flat_mu posterior_flat_sigma2 
+            0.6356077            -6.8872454           114.0293043 
+             prior_mu          prior_sigma2 
+           -8.7940184           123.7260455 
+
+[[21]]$control_means
+       alpha_discount                 p_hat          posterior_mu 
+           0.92876286            0.39969333           -0.51591654 
+     posterior_sigma2     posterior_flat_mu posterior_flat_sigma2 
+           1.22866629            0.08788996          136.08330765 
+             prior_mu          prior_sigma2 
+          -1.81175346          123.57058154 
+
+[[21]]$post_prob_p
+[1] 1
+
+
+[[22]]
+[[22]]$treatment_means
+       alpha_discount                 p_hat          posterior_mu 
+            0.9485985             0.4378430            -7.7646269 
+     posterior_sigma2     posterior_flat_mu posterior_flat_sigma2 
+            0.8243649            -7.4823220           160.1069368 
+             prior_mu          prior_sigma2 
+           -8.8434565           123.2362276 
+
+[[22]]$control_means
+       alpha_discount                 p_hat          posterior_mu 
+            0.9744957             0.4940464            -1.6464639 
+     posterior_sigma2     posterior_flat_mu posterior_flat_sigma2 
+            1.3667430            -1.4879511           167.3879748 
+             prior_mu          prior_sigma2 
+           -1.7903737           123.6768897 
+
+[[22]]$post_prob_p
+[1] 1
+
+
+[[23]]
+[[23]]$treatment_means
+       alpha_discount                 p_hat          posterior_mu 
+            0.8475905             0.3074234            -6.7189086 
+     posterior_sigma2     posterior_flat_mu posterior_flat_sigma2 
+            0.8950199            -6.1425976           170.2193323 
+             prior_mu          prior_sigma2 
+           -8.7971375           123.8397078 
+
+[[23]]$control_means
+       alpha_discount                 p_hat          posterior_mu 
+            0.9791187             0.5010550            -1.7940364 
+     posterior_sigma2     posterior_flat_mu posterior_flat_sigma2 
+            1.2561136            -1.8139520           146.9010841 
+             prior_mu          prior_sigma2 
+           -1.8012997           123.3154968 
+
+[[23]]$post_prob_p
+[1] 0.9994
+
+
+[[24]]
+[[24]]$treatment_means
+       alpha_discount                 p_hat          posterior_mu 
+            0.7331295             0.2107516            -5.9520008 
+     posterior_sigma2     posterior_flat_mu posterior_flat_sigma2 
+            0.8300623            -5.3444240           148.3896193 
+             prior_mu          prior_sigma2 
+           -8.8234993           124.5606585 
+
+[[24]]$control_means
+       alpha_discount                 p_hat          posterior_mu 
+            0.9760862             0.4952098            -1.6413967 
+     posterior_sigma2     posterior_flat_mu posterior_flat_sigma2 
+            0.9424837            -1.5824895            95.8695321 
+             prior_mu          prior_sigma2 
+           -1.7826413           123.8361006 
+
+[[24]]$post_prob_p
+[1] 0.9985
+
+
+[[25]]
+[[25]]$treatment_means
+       alpha_discount                 p_hat          posterior_mu 
+            0.8242376             0.2782525            -6.5317773 
+     posterior_sigma2     posterior_flat_mu posterior_flat_sigma2 
+            0.9150113            -5.9110622           173.2808064 
+             prior_mu          prior_sigma2 
+           -8.7997420           123.8659717 
+
+[[25]]$control_means
+       alpha_discount                 p_hat          posterior_mu 
+            0.9679903             0.4726659            -2.3441132 
+     posterior_sigma2     posterior_flat_mu posterior_flat_sigma2 
+            1.1524649            -2.6184628           127.1668370 
+             prior_mu          prior_sigma2 
+           -1.8228568           124.2197702 
+
+[[25]]$post_prob_p
+[1] 0.9974
+
+
+[[26]]
+[[26]]$treatment_means
+       alpha_discount                 p_hat          posterior_mu 
+            0.9527951             0.4457271            -7.8383957 
+     posterior_sigma2     posterior_flat_mu posterior_flat_sigma2 
+            0.8735068            -7.5105311           172.7501651 
+             prior_mu          prior_sigma2 
+           -8.8089729           124.0070633 
+
+[[26]]$control_means
+       alpha_discount                 p_hat          posterior_mu 
+            0.9638501             0.4725682            -2.4457113 
+     posterior_sigma2     posterior_flat_mu posterior_flat_sigma2 
+            1.3613158            -2.8780337           164.1933403 
+             prior_mu          prior_sigma2 
+           -1.8359057           123.6738634 
+
+[[26]]$post_prob_p
+[1] 1
+
+
+[[27]]
+[[27]]$treatment_means
+       alpha_discount                 p_hat          posterior_mu 
+            0.9345022             0.4134719            -7.5419180 
+     posterior_sigma2     posterior_flat_mu posterior_flat_sigma2 
+            0.8007419            -7.1836716           153.1003769 
+             prior_mu          prior_sigma2 
+           -8.7961934           123.8284962 
+
+[[27]]$control_means
+       alpha_discount                 p_hat          posterior_mu 
+            0.9402410             0.4192364            -2.9159984 
+     posterior_sigma2     posterior_flat_mu posterior_flat_sigma2 
+            1.3651963            -3.5722348           161.3175848 
+             prior_mu          prior_sigma2 
+           -1.7838733           123.4835127 
+
+[[27]]$post_prob_p
+[1] 0.9979
+
+
+[[28]]
+[[28]]$treatment_means
+       alpha_discount                 p_hat          posterior_mu 
+            0.8219038             0.2829977            -6.5168289 
+     posterior_sigma2     posterior_flat_mu posterior_flat_sigma2 
+            0.7782755            -5.9870137           141.8884133 
+             prior_mu          prior_sigma2 
+           -8.7774048           123.3960368 
+
+[[28]]$control_means
+       alpha_discount                 p_hat          posterior_mu 
+            0.9280045             0.3947984            -0.5333136 
+     posterior_sigma2     posterior_flat_mu posterior_flat_sigma2 
+            1.4285537             0.2347413           171.4262974 
+             prior_mu          prior_sigma2 
+           -1.7919849           123.4487276 
+
+[[28]]$post_prob_p
+[1] 0.9999
+
+
+[[29]]
+[[29]]$treatment_means
+       alpha_discount                 p_hat          posterior_mu 
+            0.8707374             0.3252786            -6.8946526 
+     posterior_sigma2     posterior_flat_mu posterior_flat_sigma2 
+            0.7087348            -6.4592734           128.5744731 
+             prior_mu          prior_sigma2 
+           -8.8459218           123.6978325 
+
+[[29]]$control_means
+       alpha_discount                 p_hat          posterior_mu 
+            0.8281235             0.2881229            -3.9276834 
+     posterior_sigma2     posterior_flat_mu posterior_flat_sigma2 
+            1.3042359            -4.8172965           137.4086723 
+             prior_mu          prior_sigma2 
+           -1.7688169           123.7294345 
+
+[[29]]$post_prob_p
+[1] 0.9722
+
+
+[[30]]
+[[30]]$treatment_means
+       alpha_discount                 p_hat          posterior_mu 
+            0.8551775             0.3077501            -6.7180263 
+     posterior_sigma2     posterior_flat_mu posterior_flat_sigma2 
+            0.7164107            -6.2569118           129.7261993 
+             prior_mu          prior_sigma2 
+           -8.7749681           122.9233311 
+
+[[30]]$control_means
+       alpha_discount                 p_hat          posterior_mu 
+            0.9515496             0.4412666            -0.8878191 
+     posterior_sigma2     posterior_flat_mu posterior_flat_sigma2 
+            1.2009118            -0.4370821           133.8169728 
+             prior_mu          prior_sigma2 
+           -1.8158893           123.7728826 
+
+[[30]]$post_prob_p
+[1] 1
+
+
+[[31]]
+[[31]]$treatment_means
+       alpha_discount                 p_hat          posterior_mu 
+            0.8962538             0.3614354            -7.1348100 
+     posterior_sigma2     posterior_flat_mu posterior_flat_sigma2 
+            0.8754746            -6.6376751           168.7404739 
+             prior_mu          prior_sigma2 
+           -8.7869144           124.3417712 
+
+[[31]]$control_means
+       alpha_discount                 p_hat          posterior_mu 
+            0.9107037             0.3743605            -3.2137356 
+     posterior_sigma2     posterior_flat_mu posterior_flat_sigma2 
+            1.3027731            -3.9466200           146.1695292 
+             prior_mu          prior_sigma2 
+           -1.7699471           123.9324317 
+
+[[31]]$post_prob_p
+[1] 0.9943
+
+
+[[32]]
+[[32]]$treatment_means
+       alpha_discount                 p_hat          posterior_mu 
+            0.8828327             0.3388178            -6.9648653 
+     posterior_sigma2     posterior_flat_mu posterior_flat_sigma2 
+            0.7647302            -6.5090917           141.8885570 
+             prior_mu          prior_sigma2 
+           -8.7858152           123.3367132 
+
+[[32]]$control_means
+       alpha_discount                 p_hat          posterior_mu 
+            0.9519103             0.4457347            -2.7280796 
+     posterior_sigma2     posterior_flat_mu posterior_flat_sigma2 
+            1.1278160            -3.1476969           121.6203566 
+             prior_mu          prior_sigma2 
+           -1.8073527           124.1751620 
+
+[[32]]$post_prob_p
+[1] 0.9987
+
+
+[[33]]
+[[33]]$treatment_means
+       alpha_discount                 p_hat          posterior_mu 
+            0.9627667             0.4677351            -8.0272404 
+     posterior_sigma2     posterior_flat_mu posterior_flat_sigma2 
+            0.8835737            -7.7511379           176.5393665 
+             prior_mu          prior_sigma2 
+           -8.7625944           123.3286464 
+
+[[33]]$control_means
+       alpha_discount                 p_hat          posterior_mu 
+            0.9185376             0.3891834            -3.1203489 
+     posterior_sigma2     posterior_flat_mu posterior_flat_sigma2 
+            1.3030064            -3.8309215           146.8750394 
+             prior_mu          prior_sigma2 
+           -1.7985726           123.7660648 
+
+[[33]]$post_prob_p
+[1] 0.9994
+
+
+[[34]]
+[[34]]$treatment_means
+       alpha_discount                 p_hat          posterior_mu 
+            0.9418750             0.4304950            -7.6523828 
+     posterior_sigma2     posterior_flat_mu posterior_flat_sigma2 
+            0.7401323            -7.3442588           138.9985648 
+             prior_mu          prior_sigma2 
+           -8.7902423           123.7895441 
+
+[[34]]$control_means
+       alpha_discount                 p_hat          posterior_mu 
+            0.9651809             0.4736532            -2.4080794 
+     posterior_sigma2     posterior_flat_mu posterior_flat_sigma2 
+            1.2769566            -2.7686024           148.6968309 
+             prior_mu          prior_sigma2 
+           -1.8059764           123.7050438 
+
+[[34]]$post_prob_p
+[1] 0.9998
+
+
+[[35]]
+[[35]]$treatment_means
+       alpha_discount                 p_hat          posterior_mu 
+            0.9532801             0.4488115            -7.9083569 
+     posterior_sigma2     posterior_flat_mu posterior_flat_sigma2 
+            0.8586595            -7.6136918           168.9959018 
+             prior_mu          prior_sigma2 
+           -8.8368802           123.9427546 
+
+[[35]]$control_means
+       alpha_discount                 p_hat          posterior_mu 
+           0.93260311            0.40867774           -0.53646180 
+     posterior_sigma2     posterior_flat_mu posterior_flat_sigma2 
+           1.03573504           -0.03680277          106.53661415 
+             prior_mu          prior_sigma2 
+          -1.79552468          124.15064062 
+
+[[35]]$post_prob_p
+[1] 1
+
+
+[[36]]
+[[36]]$treatment_means
+       alpha_discount                 p_hat          posterior_mu 
+            0.9074385             0.3750128            -7.2188546 
+     posterior_sigma2     posterior_flat_mu posterior_flat_sigma2 
+            0.8685780            -6.7515498           168.0338500 
+             prior_mu          prior_sigma2 
+           -8.7750684           123.6839904 
+
+[[36]]$control_means
+       alpha_discount                 p_hat          posterior_mu 
+            0.9581794             0.4607631            -1.0813145 
+     posterior_sigma2     posterior_flat_mu posterior_flat_sigma2 
+            1.2622439            -0.6800061           144.5980494 
+             prior_mu          prior_sigma2 
+           -1.8352739           124.4839668 
+
+[[36]]$post_prob_p
+[1] 1
+
+
+[[37]]
+[[37]]$treatment_means
+       alpha_discount                 p_hat          posterior_mu 
+            0.9622727             0.4619687            -7.9607194 
+     posterior_sigma2     posterior_flat_mu posterior_flat_sigma2 
+            0.7584517            -7.7452531           144.2192701 
+             prior_mu          prior_sigma2 
+           -8.8093987           124.1128319 
+
+[[37]]$control_means
+       alpha_discount                 p_hat          posterior_mu 
+            0.9735826             0.4898243            -2.1761189 
+     posterior_sigma2     posterior_flat_mu posterior_flat_sigma2 
+            1.2498531            -2.3937227           144.6646639 
+             prior_mu          prior_sigma2 
+           -1.7880827           123.9065928 
+
+[[37]]$post_prob_p
+[1] 0.9999
+
+
+[[38]]
+[[38]]$treatment_means
+       alpha_discount                 p_hat          posterior_mu 
+            0.9159547             0.3877534            -7.2998227 
+     posterior_sigma2     posterior_flat_mu posterior_flat_sigma2 
+            0.7423126            -6.9207058           138.1001631 
+             prior_mu          prior_sigma2 
+           -8.7691071           123.9569015 
+
+[[38]]$control_means
+       alpha_discount                 p_hat          posterior_mu 
+            0.9600861             0.4488949            -0.9808129 
+     posterior_sigma2     posterior_flat_mu posterior_flat_sigma2 
+            1.4117106            -0.4535177           173.2534511 
+             prior_mu          prior_sigma2 
+           -1.8030606           123.9966689 
+
+[[38]]$post_prob_p
+[1] 1
+
+
+[[39]]
+[[39]]$treatment_means
+       alpha_discount                 p_hat          posterior_mu 
+            0.9228099             0.3912401            -7.3817081 
+     posterior_sigma2     posterior_flat_mu posterior_flat_sigma2 
+            0.7734867            -6.9844666           146.0030069 
+             prior_mu          prior_sigma2 
+           -8.8012976           123.3345458 
+
+[[39]]$control_means
+       alpha_discount                 p_hat          posterior_mu 
+            0.9478528             0.4371003            -2.7621920 
+     posterior_sigma2     posterior_flat_mu posterior_flat_sigma2 
+            1.2485557            -3.2841170           140.9497298 
+             prior_mu          prior_sigma2 
+           -1.7830818           124.2003830 
+
+[[39]]$post_prob_p
+[1] 0.9992
+
+
+[[40]]
+[[40]]$treatment_means
+       alpha_discount                 p_hat          posterior_mu 
+            0.8779610             0.3351228            -6.9544841 
+     posterior_sigma2     posterior_flat_mu posterior_flat_sigma2 
+            0.8070364            -6.4485868           151.3183649 
+             prior_mu          prior_sigma2 
+           -8.7936847           123.6897811 
+
+[[40]]$control_means
+       alpha_discount                 p_hat          posterior_mu 
+            0.9569419             0.4518625            -0.8892314 
+     posterior_sigma2     posterior_flat_mu posterior_flat_sigma2 
+            1.0335862            -0.5253608           107.9616410 
+             prior_mu          prior_sigma2 
+           -1.7627986           123.7031383 
+
+[[40]]$post_prob_p
+[1] 1
+
+
+[[41]]
+[[41]]$treatment_means
+       alpha_discount                 p_hat          posterior_mu 
+            0.9458283             0.4340077            -7.7062190 
+     posterior_sigma2     posterior_flat_mu posterior_flat_sigma2 
+            0.6833755            -7.4346934           125.9080882 
+             prior_mu          prior_sigma2 
+           -8.8043556           123.8215920 
+
+[[41]]$control_means
+       alpha_discount                 p_hat          posterior_mu 
+            0.9671343             0.4729127            -2.3567741 
+     posterior_sigma2     posterior_flat_mu posterior_flat_sigma2 
+            1.4076196            -2.7558107           173.9565199 
+             prior_mu          prior_sigma2 
+           -1.7757271           123.8818714 
+
+[[41]]$post_prob_p
+[1] 0.9998
+
+
+[[42]]
+[[42]]$treatment_means
+       alpha_discount                 p_hat          posterior_mu 
+            0.9661768             0.4771948            -8.2432790 
+     posterior_sigma2     posterior_flat_mu posterior_flat_sigma2 
+            0.6392662            -8.1139794           116.6153972 
+             prior_mu          prior_sigma2 
+           -8.8120490           124.0888773 
+
+[[42]]$control_means
+       alpha_discount                 p_hat          posterior_mu 
+            0.8898220             0.3513335            -3.4764931 
+     posterior_sigma2     posterior_flat_mu posterior_flat_sigma2 
+            1.1507726            -4.1806257           120.4989750 
+             prior_mu          prior_sigma2 
+           -1.8187399           123.5309152 
+
+[[42]]$post_prob_p
+[1] 0.9997
+
+
+[[43]]
+[[43]]$treatment_means
+       alpha_discount                 p_hat          posterior_mu 
+            0.9452158             0.4222000            -7.6773169 
+     posterior_sigma2     posterior_flat_mu posterior_flat_sigma2 
+            0.8608744            -7.3150832           169.1077575 
+             prior_mu          prior_sigma2 
+           -8.7963076           123.5404011 
+
+[[43]]$control_means
+       alpha_discount                 p_hat          posterior_mu 
+            0.9756109             0.4901019            -2.1737363 
+     posterior_sigma2     posterior_flat_mu posterior_flat_sigma2 
+            1.5288627            -2.4734509           202.2195960 
+             prior_mu          prior_sigma2 
+           -1.8199066           123.8884504 
+
+[[43]]$post_prob_p
+[1] 0.9998
+
+
+[[44]]
+[[44]]$treatment_means
+       alpha_discount                 p_hat          posterior_mu 
+            0.9334069             0.4175174            -7.5765992 
+     posterior_sigma2     posterior_flat_mu posterior_flat_sigma2 
+            0.8396470            -7.2220459           162.7235724 
+             prior_mu          prior_sigma2 
+           -8.8197706           123.5292404 
+
+[[44]]$control_means
+       alpha_discount                 p_hat          posterior_mu 
+            0.9695662             0.4762107            -1.3544126 
+     posterior_sigma2     posterior_flat_mu posterior_flat_sigma2 
+            1.1241709            -1.1399578           122.8170925 
+             prior_mu          prior_sigma2 
+           -1.7996381           124.2061589 
+
+[[44]]$post_prob_p
+[1] 1
+
+
+[[45]]
+[[45]]$treatment_means
+       alpha_discount                 p_hat          posterior_mu 
+            0.8840372             0.3400139            -6.9878952 
+     posterior_sigma2     posterior_flat_mu posterior_flat_sigma2 
+            0.7248682            -6.5564517           132.6382804 
+             prior_mu          prior_sigma2 
+           -8.8114572           124.1337877 
+
+[[45]]$control_means
+       alpha_discount                 p_hat          posterior_mu 
+            0.8575802             0.3108318            -3.6962357 
+     posterior_sigma2     posterior_flat_mu posterior_flat_sigma2 
+            1.4528160            -4.7187405           164.6853760 
+             prior_mu          prior_sigma2 
+           -1.8219827           123.3844843 
+
+[[45]]$post_prob_p
+[1] 0.9792
+
+
+[[46]]
+[[46]]$treatment_means
+       alpha_discount                 p_hat          posterior_mu 
+            0.8028482             0.2627155            -6.3777343 
+     posterior_sigma2     posterior_flat_mu posterior_flat_sigma2 
+            0.7757121            -5.8520660           140.1310700 
+             prior_mu          prior_sigma2 
+           -8.8295080           123.9826010 
+
+[[46]]$control_means
+       alpha_discount                 p_hat          posterior_mu 
+            0.5430323             0.1157016            -5.8053143 
+     posterior_sigma2     posterior_flat_mu posterior_flat_sigma2 
+            1.5141694            -6.8158537           139.1617755 
+             prior_mu          prior_sigma2 
+           -1.7891924           123.4509735 
+
+[[46]]$post_prob_p
+[1] 0.6358
+
+
+[[47]]
+[[47]]$treatment_means
+       alpha_discount                 p_hat          posterior_mu 
+            0.7135918             0.1955029            -5.8194704 
+     posterior_sigma2     posterior_flat_mu posterior_flat_sigma2 
+            0.9290128            -5.1270034           168.8555923 
+             prior_mu          prior_sigma2 
+           -8.8074410           123.6780050 
+
+[[47]]$control_means
+       alpha_discount                 p_hat          posterior_mu 
+            0.9606722             0.4668398            -2.4641732 
+     posterior_sigma2     posterior_flat_mu posterior_flat_sigma2 
+            1.2847143            -2.8721593           149.2326487 
+             prior_mu          prior_sigma2 
+           -1.8262729           123.9158959 
+
+[[47]]$post_prob_p
+[1] 0.9803
+
+
+[[48]]
+[[48]]$treatment_means
+       alpha_discount                 p_hat          posterior_mu 
+            0.9026202             0.3651954            -7.1730459 
+     posterior_sigma2     posterior_flat_mu posterior_flat_sigma2 
+            0.7233381            -6.7880857           133.2801156 
+             prior_mu          prior_sigma2 
+           -8.8172126           123.5015577 
+
+[[48]]$control_means
+       alpha_discount                 p_hat          posterior_mu 
+            0.9758565             0.5003249            -1.6346999 
+     posterior_sigma2     posterior_flat_mu posterior_flat_sigma2 
+            0.9938928            -1.5533179           103.3471655 
+             prior_mu          prior_sigma2 
+           -1.8193290           123.7163717 
+
+[[48]]$post_prob_p
+[1] 1
+
+
+[[49]]
+[[49]]$treatment_means
+       alpha_discount                 p_hat          posterior_mu 
+            0.9262364             0.4041051            -7.4242381 
+     posterior_sigma2     posterior_flat_mu posterior_flat_sigma2 
+            0.7879718            -7.0224363           149.5580032 
+             prior_mu          prior_sigma2 
+           -8.7329237           123.5358069 
+
+[[49]]$control_means
+       alpha_discount                 p_hat          posterior_mu 
+            0.9725802             0.4879663            -2.2074401 
+     posterior_sigma2     posterior_flat_mu posterior_flat_sigma2 
+            1.3660738            -2.4790311           166.6083200 
+             prior_mu          prior_sigma2 
+           -1.8040485           123.8576481 
+
+[[49]]$post_prob_p
+[1] 0.9995
+
+
+[[50]]
+[[50]]$treatment_means
+       alpha_discount                 p_hat          posterior_mu 
+            0.6161607             0.1454151            -5.2329391 
+     posterior_sigma2     posterior_flat_mu posterior_flat_sigma2 
+            0.8466086            -4.6428715           146.2662540 
+             prior_mu          prior_sigma2 
+           -8.8073933           123.3926505 
+
+[[50]]$control_means
+       alpha_discount                 p_hat          posterior_mu 
+            0.9684141             0.4807673            -1.2175987 
+     posterior_sigma2     posterior_flat_mu posterior_flat_sigma2 
+            1.3359800            -0.9053073           159.9218106 
+             prior_mu          prior_sigma2 
+           -1.7753470           123.8802899 
+
+[[50]]$post_prob_p
+[1] 0.9951
+
+
+[[51]]
+[[51]]$treatment_means
+       alpha_discount                 p_hat          posterior_mu 
+            0.9325506             0.4061113            -7.5681564 
+     posterior_sigma2     posterior_flat_mu posterior_flat_sigma2 
+            0.8459918            -7.1615875           164.3821801 
+             prior_mu          prior_sigma2 
+           -8.8264425           123.4186219 
+
+[[51]]$control_means
+       alpha_discount                 p_hat          posterior_mu 
+            0.9624916             0.4654795            -1.0720031 
+     posterior_sigma2     posterior_flat_mu posterior_flat_sigma2 
+            1.2987802            -0.6492990           152.2642278 
+             prior_mu          prior_sigma2 
+           -1.7801658           123.6975337 
+
+[[51]]$post_prob_p
+[1] 1
+
+
+[[52]]
+[[52]]$treatment_means
+       alpha_discount                 p_hat          posterior_mu 
+            0.9298491             0.4089405            -7.5355446 
+     posterior_sigma2     posterior_flat_mu posterior_flat_sigma2 
+            0.8164068            -7.1553565           156.6600738 
+             prior_mu          prior_sigma2 
+           -8.7890486           123.7810811 
+
+[[52]]$control_means
+       alpha_discount                 p_hat          posterior_mu 
+           0.93098792            0.41110381           -0.62762575 
+     posterior_sigma2     posterior_flat_mu posterior_flat_sigma2 
+           1.34287596            0.04583735          155.70542083 
+             prior_mu          prior_sigma2 
+          -1.80391416          123.89974491 
+
+[[52]]$post_prob_p
+[1] 1
+
+
+[[53]]
+[[53]]$treatment_means
+       alpha_discount                 p_hat          posterior_mu 
+            0.9322287             0.4035152            -7.4840684 
+     posterior_sigma2     posterior_flat_mu posterior_flat_sigma2 
+            0.8412590            -7.0833917           162.9758274 
+             prior_mu          prior_sigma2 
+           -8.8154644           123.9357741 
+
+[[53]]$control_means
+       alpha_discount                 p_hat          posterior_mu 
+            0.9666963             0.4763454            -2.4399594 
+     posterior_sigma2     posterior_flat_mu posterior_flat_sigma2 
+            1.0407385            -2.7246263           109.5899779 
+             prior_mu          prior_sigma2 
+           -1.8305494           123.8701942 
+
+[[53]]$post_prob_p
+[1] 1
+
+
+[[54]]
+[[54]]$treatment_means
+       alpha_discount                 p_hat          posterior_mu 
+            0.9184927             0.3896946            -7.3274542 
+     posterior_sigma2     posterior_flat_mu posterior_flat_sigma2 
+            0.7088546            -6.9707813           130.5469481 
+             prior_mu          prior_sigma2 
+           -8.8101774           123.5746367 
+
+[[54]]$control_means
+       alpha_discount                 p_hat          posterior_mu 
+            0.9738503             0.4904760            -2.1859907 
+     posterior_sigma2     posterior_flat_mu posterior_flat_sigma2 
+            1.4451242            -2.4466931           183.0199406 
+             prior_mu          prior_sigma2 
+           -1.7868737           123.9051497 
+
+[[54]]$post_prob_p
+[1] 0.9993
+
+
+[[55]]
+[[55]]$treatment_means
+       alpha_discount                 p_hat          posterior_mu 
+            0.9273686             0.4090713            -7.4903348 
+     posterior_sigma2     posterior_flat_mu posterior_flat_sigma2 
+            0.7642426            -7.1452446           143.9461787 
+             prior_mu          prior_sigma2 
+           -8.8088359           123.4138317 
+
+[[55]]$control_means
+       alpha_discount                 p_hat          posterior_mu 
+           0.94347168            0.43000234           -0.83555572 
+     posterior_sigma2     posterior_flat_mu posterior_flat_sigma2 
+           1.61771385           -0.04874867          214.24117905 
+             prior_mu          prior_sigma2 
+          -1.77929793          123.51816579 
+
+[[55]]$post_prob_p
+[1] 1
+
+
+[[56]]
+[[56]]$treatment_means
+       alpha_discount                 p_hat          posterior_mu 
+            0.9757645             0.4966080            -8.8519188 
+     posterior_sigma2     posterior_flat_mu posterior_flat_sigma2 
+            0.8596115            -8.8995113           171.2170498 
+             prior_mu          prior_sigma2 
+           -8.7987139           123.4283045 
+
+[[56]]$control_means
+       alpha_discount                 p_hat          posterior_mu 
+            0.9782927             0.4971564            -1.6761880 
+     posterior_sigma2     posterior_flat_mu posterior_flat_sigma2 
+            1.2953526            -1.6011444           153.7289388 
+             prior_mu          prior_sigma2 
+           -1.8153857           124.0336269 
+
+[[56]]$post_prob_p
+[1] 1
+
+
+[[57]]
+[[57]]$treatment_means
+       alpha_discount                 p_hat          posterior_mu 
+            0.9006649             0.3625309            -7.1403382 
+     posterior_sigma2     posterior_flat_mu posterior_flat_sigma2 
+            0.7758715            -6.7064515           145.1556472 
+             prior_mu          prior_sigma2 
+           -8.7925827           123.7909911 
+
+[[57]]$control_means
+       alpha_discount                 p_hat          posterior_mu 
+            0.9745756             0.4941703            -2.0890468 
+     posterior_sigma2     posterior_flat_mu posterior_flat_sigma2 
+            1.4148064            -2.2419370           177.1802154 
+             prior_mu          prior_sigma2 
+           -1.8089907           123.5538832 
+
+[[57]]$post_prob_p
+[1] 0.9995
+
+
+[[58]]
+[[58]]$treatment_means
+       alpha_discount                 p_hat          posterior_mu 
+            0.9767317             0.5070315            -8.7994552 
+     posterior_sigma2     posterior_flat_mu posterior_flat_sigma2 
+            0.7645542            -8.7992624           146.7229955 
+             prior_mu          prior_sigma2 
+           -8.8351399           123.5756536 
+
+[[58]]$control_means
+       alpha_discount                 p_hat          posterior_mu 
+            0.9767231             0.4955596            -1.5421261 
+     posterior_sigma2     posterior_flat_mu posterior_flat_sigma2 
+            1.2834089            -1.3797780           151.4699154 
+             prior_mu          prior_sigma2 
+           -1.8049786           123.5586636 
+
+[[58]]$post_prob_p
+[1] 1
+
+
+[[59]]
+[[59]]$treatment_means
+       alpha_discount                 p_hat          posterior_mu 
+            0.8166025             0.2752247            -6.4982838 
+     posterior_sigma2     posterior_flat_mu posterior_flat_sigma2 
+            0.7886162            -5.9550515           143.9645754 
+             prior_mu          prior_sigma2 
+           -8.8008048           122.8742492 
+
+[[59]]$control_means
+       alpha_discount                 p_hat          posterior_mu 
+            0.9747907             0.4903188            -2.1417260 
+     posterior_sigma2     posterior_flat_mu posterior_flat_sigma2 
+            1.2095997            -2.3500141           137.9414674 
+             prior_mu          prior_sigma2 
+           -1.8042023           123.2606408 
+
+[[59]]$post_prob_p
+[1] 0.9983
+
+
+[[60]]
+[[60]]$treatment_means
+       alpha_discount                 p_hat          posterior_mu 
+            0.9393030             0.4263489            -7.6704947 
+     posterior_sigma2     posterior_flat_mu posterior_flat_sigma2 
+            0.9482307            -7.2689959           191.7439141 
+             prior_mu          prior_sigma2 
+           -8.7987818           123.6276133 
+
+[[60]]$control_means
+       alpha_discount                 p_hat          posterior_mu 
+            0.9518619             0.4474854            -2.7724791 
+     posterior_sigma2     posterior_flat_mu posterior_flat_sigma2 
+            1.1287282            -3.2483161           122.1869214 
+             prior_mu          prior_sigma2 
+           -1.8532837           123.5066143 
+
+[[60]]$post_prob_p
+[1] 0.9989
+
+
+[[61]]
+[[61]]$treatment_means
+       alpha_discount                 p_hat          posterior_mu 
+            0.9484552             0.4323505            -7.7469882 
+     posterior_sigma2     posterior_flat_mu posterior_flat_sigma2 
+            0.7369679            -7.4746630           138.4780643 
+             prior_mu          prior_sigma2 
+           -8.8342788           123.8029382 
+
+[[61]]$control_means
+       alpha_discount                 p_hat          posterior_mu 
+            0.9740846             0.4909019            -1.4668808 
+     posterior_sigma2     posterior_flat_mu posterior_flat_sigma2 
+            1.2961422            -1.2373047           153.3104667 
+             prior_mu          prior_sigma2 
+           -1.7735112           123.6607790 
+
+[[61]]$post_prob_p
+[1] 0.9999
+
+
+[[62]]
+[[62]]$treatment_means
+       alpha_discount                 p_hat          posterior_mu 
+            0.8839380             0.3403373            -6.9894352 
+     posterior_sigma2     posterior_flat_mu posterior_flat_sigma2 
+            0.8193236            -6.5107107           154.4810495 
+             prior_mu          prior_sigma2 
+           -8.8053454           123.9334005 
+
+[[62]]$control_means
+       alpha_discount                 p_hat          posterior_mu 
+            0.9737933             0.4948971            -2.0840784 
+     posterior_sigma2     posterior_flat_mu posterior_flat_sigma2 
+            1.3224280            -2.2515036           158.5157761 
+             prior_mu          prior_sigma2 
+           -1.8071989           123.3611068 
+
+[[62]]$post_prob_p
+[1] 0.9994
+
+
+[[63]]
+[[63]]$treatment_means
+       alpha_discount                 p_hat          posterior_mu 
+            0.9162761             0.3881531            -7.3477804 
+     posterior_sigma2     posterior_flat_mu posterior_flat_sigma2 
+            0.8109540            -6.9377085           154.3684721 
+             prior_mu          prior_sigma2 
+           -8.7933718           123.9050699 
+
+[[63]]$control_means
+       alpha_discount                 p_hat          posterior_mu 
+            0.9745585             0.4965310            -1.9401824 
+     posterior_sigma2     posterior_flat_mu posterior_flat_sigma2 
+            1.2137473            -2.0208915           138.7415849 
+             prior_mu          prior_sigma2 
+           -1.8160280           122.9954538 
+
+[[63]]$post_prob_p
+[1] 1
+
+
+[[64]]
+[[64]]$treatment_means
+       alpha_discount                 p_hat          posterior_mu 
+            0.9033226             0.3654716            -7.1658461 
+     posterior_sigma2     posterior_flat_mu posterior_flat_sigma2 
+            0.6828565            -6.7856880           124.0678351 
+             prior_mu          prior_sigma2 
+           -8.8196292           123.5992412 
+
+[[64]]$control_means
+       alpha_discount                 p_hat          posterior_mu 
+            0.9544634             0.4474939            -0.9581933 
+     posterior_sigma2     posterior_flat_mu posterior_flat_sigma2 
+            1.2623570            -0.4797132           144.6197326 
+             prior_mu          prior_sigma2 
+           -1.7963870           123.6035215 
+
+[[64]]$post_prob_p
+[1] 1
+
+
+[[65]]
+[[65]]$treatment_means
+       alpha_discount                 p_hat          posterior_mu 
+            0.6870853             0.1817420            -5.5915462 
+     posterior_sigma2     posterior_flat_mu posterior_flat_sigma2 
+            0.7217924            -5.0729967           124.3600697 
+             prior_mu          prior_sigma2 
+           -8.7676561           123.7740900 
+
+[[65]]$control_means
+       alpha_discount                 p_hat          posterior_mu 
+           0.87361178            0.33071893           -0.06072524 
+     posterior_sigma2     posterior_flat_mu posterior_flat_sigma2 
+           1.33860946            0.79467881          147.94219862 
+             prior_mu          prior_sigma2 
+          -1.82727323          123.32299266 
+
+[[65]]$post_prob_p
+[1] 0.9998
+
+
+[[66]]
+[[66]]$treatment_means
+       alpha_discount                 p_hat          posterior_mu 
+            0.8702928             0.3276470            -6.9043528 
+     posterior_sigma2     posterior_flat_mu posterior_flat_sigma2 
+            0.7566113            -6.4378496           139.2797238 
+             prior_mu          prior_sigma2 
+           -8.7858101           123.4489157 
+
+[[66]]$control_means
+       alpha_discount                 p_hat          posterior_mu 
+            0.9611121             0.4613760            -1.1109422 
+     posterior_sigma2     posterior_flat_mu posterior_flat_sigma2 
+            1.3508768            -0.6615005           161.9171747 
+             prior_mu          prior_sigma2 
+           -1.8225386           123.2573307 
+
+[[66]]$post_prob_p
+[1] 0.9998
+
+
+[[67]]
+[[67]]$treatment_means
+       alpha_discount                 p_hat          posterior_mu 
+            0.6413032             0.1562238            -5.3520142 
+     posterior_sigma2     posterior_flat_mu posterior_flat_sigma2 
+            0.8081250            -4.7814225           139.7369939 
+             prior_mu          prior_sigma2 
+           -8.7959467           123.7747363 
+
+[[67]]$control_means
+       alpha_discount                 p_hat          posterior_mu 
+            0.7928057             0.2499223            -4.1688431 
+     posterior_sigma2     posterior_flat_mu posterior_flat_sigma2 
+            1.4783139            -5.2919916           159.5851529 
+             prior_mu          prior_sigma2 
+           -1.8115055           123.6782700 
+
+[[67]]$post_prob_p
+[1] 0.7717
+
+
+[[68]]
+[[68]]$treatment_means
+       alpha_discount                 p_hat          posterior_mu 
+            0.8562017             0.3179260            -6.7902883 
+     posterior_sigma2     posterior_flat_mu posterior_flat_sigma2 
+            0.7858669            -6.2838622           145.1036826 
+             prior_mu          prior_sigma2 
+           -8.8095662           123.9274666 
+
+[[68]]$control_means
+       alpha_discount                 p_hat          posterior_mu 
+            0.9561063             0.4545111            -1.0448269 
+     posterior_sigma2     posterior_flat_mu posterior_flat_sigma2 
+            1.4482481            -0.4808722           180.3998432 
+             prior_mu          prior_sigma2 
+           -1.7953695           123.4873950 
+
+[[68]]$post_prob_p
+[1] 0.9999
+
+
+[[69]]
+[[69]]$treatment_means
+       alpha_discount                 p_hat          posterior_mu 
+            0.8959375             0.3642029            -7.1091768 
+     posterior_sigma2     posterior_flat_mu posterior_flat_sigma2 
+            0.8096969            -6.6742232           153.0094051 
+             prior_mu          prior_sigma2 
+           -8.7852207           123.5824904 
+
+[[69]]$control_means
+       alpha_discount                 p_hat          posterior_mu 
+             0.974245              0.493071             -1.519975 
+     posterior_sigma2     posterior_flat_mu posterior_flat_sigma2 
+             1.113658             -1.393092            121.590150 
+             prior_mu          prior_sigma2 
+            -1.816475            123.762651 
+
+[[69]]$post_prob_p
+[1] 1
+
+
+[[70]]
+[[70]]$treatment_means
+       alpha_discount                 p_hat          posterior_mu 
+            0.9525279             0.4474947            -7.8919700 
+     posterior_sigma2     posterior_flat_mu posterior_flat_sigma2 
+            0.8795502            -7.5504820           174.5509896 
+             prior_mu          prior_sigma2 
+           -8.8075720           123.4340120 
+
+[[70]]$control_means
+       alpha_discount                 p_hat          posterior_mu 
+            0.9689731             0.4794150            -2.3306354 
+     posterior_sigma2     posterior_flat_mu posterior_flat_sigma2 
+            1.4563472            -2.6884945           184.5385890 
+             prior_mu          prior_sigma2 
+           -1.7707245           123.8442905 
+
+[[70]]$post_prob_p
+[1] 0.9994
+
+
+[[71]]
+[[71]]$treatment_means
+       alpha_discount                 p_hat          posterior_mu 
+            0.8391594             0.2908237            -6.5995040 
+     posterior_sigma2     posterior_flat_mu posterior_flat_sigma2 
+            0.7610229            -6.1138286           138.6857418 
+             prior_mu          prior_sigma2 
+           -8.8100388           123.7007807 
+
+[[71]]$control_means
+       alpha_discount                 p_hat          posterior_mu 
+            0.9768927             0.4986249            -2.0451627 
+     posterior_sigma2     posterior_flat_mu posterior_flat_sigma2 
+            1.3038678            -2.1859062           154.9852070 
+             prior_mu          prior_sigma2 
+           -1.7645295           124.3420198 
+
+[[71]]$post_prob_p
+[1] 0.999
+
+
+[[72]]
+[[72]]$treatment_means
+       alpha_discount                 p_hat          posterior_mu 
+            0.9721016             0.4799667            -8.2506979 
+     posterior_sigma2     posterior_flat_mu posterior_flat_sigma2 
+            0.7067916            -8.1015648           132.6355137 
+             prior_mu          prior_sigma2 
+           -8.7896201           123.3089970 
+
+[[72]]$control_means
+       alpha_discount                 p_hat          posterior_mu 
+            0.9386883             0.4215925            -0.7387827 
+     posterior_sigma2     posterior_flat_mu posterior_flat_sigma2 
+            1.3562897            -0.1038121           159.3813785 
+             prior_mu          prior_sigma2 
+           -1.7985211           123.9538527 
+
+[[72]]$post_prob_p
+[1] 1
+
+
+[[73]]
+[[73]]$treatment_means
+       alpha_discount                 p_hat          posterior_mu 
+            0.9741072             0.4916800            -8.4946118 
+     posterior_sigma2     posterior_flat_mu posterior_flat_sigma2 
+            0.7024983            -8.4202235           131.5155943 
+             prior_mu          prior_sigma2 
+           -8.8056861           123.6433047 
+
+[[73]]$control_means
+       alpha_discount                 p_hat          posterior_mu 
+           0.93091046            0.40464539           -0.58963653 
+     posterior_sigma2     posterior_flat_mu posterior_flat_sigma2 
+           1.34636918            0.09668764          156.51245036 
+             prior_mu          prior_sigma2 
+          -1.79544112          123.63293446 
+
+[[73]]$post_prob_p
+[1] 1
+
+
+[[74]]
+[[74]]$treatment_means
+       alpha_discount                 p_hat          posterior_mu 
+            0.9737462             0.4970630            -8.4889158 
+     posterior_sigma2     posterior_flat_mu posterior_flat_sigma2 
+            0.7149316            -8.3820808           134.5093307 
+             prior_mu          prior_sigma2 
+           -8.7868753           123.5868534 
+
+[[74]]$control_means
+       alpha_discount                 p_hat          posterior_mu 
+            0.9669353             0.4769387            -2.3654604 
+     posterior_sigma2     posterior_flat_mu posterior_flat_sigma2 
+            1.3838640            -2.7232182           168.7921171 
+             prior_mu          prior_sigma2 
+           -1.8115791           123.8604032 
+
+[[74]]$post_prob_p
+[1] 1
+
+
+[[75]]
+[[75]]$treatment_means
+       alpha_discount                 p_hat          posterior_mu 
+            0.9483116             0.4401521            -7.7633027 
+     posterior_sigma2     posterior_flat_mu posterior_flat_sigma2 
+            0.7184970            -7.4985738           134.2374696 
+             prior_mu          prior_sigma2 
+           -8.8199803           123.3400784 
+
+[[75]]$control_means
+       alpha_discount                 p_hat          posterior_mu 
+            0.9603480             0.4592376            -2.5434268 
+     posterior_sigma2     posterior_flat_mu posterior_flat_sigma2 
+            1.1925925            -2.9353606           133.2360459 
+             prior_mu          prior_sigma2 
+           -1.7685102           123.6685271 
+
+[[75]]$post_prob_p
+[1] 1
+
+
+[[76]]
+[[76]]$treatment_means
+       alpha_discount                 p_hat          posterior_mu 
+            0.9134554             0.3813430            -7.2929468 
+     posterior_sigma2     posterior_flat_mu posterior_flat_sigma2 
+            0.8090335            -6.8714473           153.8155220 
+             prior_mu          prior_sigma2 
+           -8.8183450           123.8907756 
+
+[[76]]$control_means
+       alpha_discount                 p_hat          posterior_mu 
+            0.9420518             0.4264418            -2.8384577 
+     posterior_sigma2     posterior_flat_mu posterior_flat_sigma2 
+            1.3139126            -3.4253073           152.1371854 
+             prior_mu          prior_sigma2 
+           -1.7824496           123.9449034 
+
+[[76]]$post_prob_p
+[1] 0.9985
+
+
+[[77]]
+[[77]]$treatment_means
+       alpha_discount                 p_hat          posterior_mu 
+            0.9090615             0.3811425            -7.2804232 
+     posterior_sigma2     posterior_flat_mu posterior_flat_sigma2 
+            0.8273317            -6.8542740           158.0906966 
+             prior_mu          prior_sigma2 
+           -8.8014095           123.8243812 
+
+[[77]]$control_means
+       alpha_discount                 p_hat          posterior_mu 
+            0.8931061             0.3564939            -3.3914761 
+     posterior_sigma2     posterior_flat_mu posterior_flat_sigma2 
+            1.4631453            -4.3101035           171.7414199 
+             prior_mu          prior_sigma2 
+           -1.8193957           123.5310534 
+
+[[77]]$post_prob_p
+[1] 0.9923
+
+
+[[78]]
+[[78]]$treatment_means
+       alpha_discount                 p_hat          posterior_mu 
+            0.9207879             0.3942808            -7.3588015 
+     posterior_sigma2     posterior_flat_mu posterior_flat_sigma2 
+            0.7123911            -7.0147521           131.4034459 
+             prior_mu          prior_sigma2 
+           -8.7967733           123.7417717 
+
+[[78]]$control_means
+       alpha_discount                 p_hat          posterior_mu 
+            0.9726319             0.4845252            -1.4798570 
+     posterior_sigma2     posterior_flat_mu posterior_flat_sigma2 
+            1.4971325            -1.2340668           194.3602021 
+             prior_mu          prior_sigma2 
+           -1.8167441           123.5688245 
+
+[[78]]$post_prob_p
+[1] 1
+
+
+[[79]]
+[[79]]$treatment_means
+       alpha_discount                 p_hat          posterior_mu 
+            0.9233643             0.3957680            -7.4141677 
+     posterior_sigma2     posterior_flat_mu posterior_flat_sigma2 
+            0.9108806            -6.9586512           180.0431219 
+             prior_mu          prior_sigma2 
+           -8.7917165           124.0531692 
+
+[[79]]$control_means
+       alpha_discount                 p_hat          posterior_mu 
+            0.9629000             0.4616017            -2.4857965 
+     posterior_sigma2     posterior_flat_mu posterior_flat_sigma2 
+            1.4486290            -2.9206790           181.3561501 
+             prior_mu          prior_sigma2 
+           -1.7945256           124.2115450 
+
+[[79]]$post_prob_p
+[1] 0.999
+
+
+[[80]]
+[[80]]$treatment_means
+       alpha_discount                 p_hat          posterior_mu 
+            0.9154769             0.3839223            -7.2962636 
+     posterior_sigma2     posterior_flat_mu posterior_flat_sigma2 
+            0.7208939            -6.9342318           133.1714021 
+             prior_mu          prior_sigma2 
+           -8.8124549           124.0658614 
+
+[[80]]$control_means
+       alpha_discount                 p_hat          posterior_mu 
+            0.9726369             0.4836298            -1.2827595 
+     posterior_sigma2     posterior_flat_mu posterior_flat_sigma2 
+            1.4150413            -0.9235622           177.1007302 
+             prior_mu          prior_sigma2 
+           -1.8199845           123.4518686 
+
+[[80]]$post_prob_p
+[1] 0.9999
+
+
+[[81]]
+[[81]]$treatment_means
+       alpha_discount                 p_hat          posterior_mu 
+            0.8772078             0.3330831            -6.9334070 
+     posterior_sigma2     posterior_flat_mu posterior_flat_sigma2 
+            0.8493719            -6.4076257           161.3588502 
+             prior_mu          prior_sigma2 
+           -8.7919846           123.5259656 
+
+[[81]]$control_means
+       alpha_discount                 p_hat          posterior_mu 
+            0.9757768             0.5018518            -1.5025692 
+     posterior_sigma2     posterior_flat_mu posterior_flat_sigma2 
+            1.4888425            -1.2477839           193.6240612 
+             prior_mu          prior_sigma2 
+           -1.7867403           123.3507480 
+
+[[81]]$post_prob_p
+[1] 0.9996
+
+
+[[82]]
+[[82]]$treatment_means
+       alpha_discount                 p_hat          posterior_mu 
+            0.8654181             0.3171916            -6.8332866 
+     posterior_sigma2     posterior_flat_mu posterior_flat_sigma2 
+            0.7781263            -6.3442749           144.0557105 
+             prior_mu          prior_sigma2 
+           -8.8219444           123.3393612 
+
+[[82]]$control_means
+       alpha_discount                 p_hat          posterior_mu 
+            0.9757917             0.4945032            -2.0872915 
+     posterior_sigma2     posterior_flat_mu posterior_flat_sigma2 
+            1.2246783            -2.2537207           140.4697742 
+             prior_mu          prior_sigma2 
+           -1.8162750           123.6553855 
+
+[[82]]$post_prob_p
+[1] 0.9995
+
+
+[[83]]
+[[83]]$treatment_means
+       alpha_discount                 p_hat          posterior_mu 
+            0.7540825             0.2252469            -5.9802131 
+     posterior_sigma2     posterior_flat_mu posterior_flat_sigma2 
+            0.6837580            -5.4952733           119.0746836 
+             prior_mu          prior_sigma2 
+           -8.7629584           123.6313575 
+
+[[83]]$control_means
+       alpha_discount                 p_hat          posterior_mu 
+            0.9759696             0.4976895            -1.9793401 
+     posterior_sigma2     posterior_flat_mu posterior_flat_sigma2 
+            1.2578694            -2.0909437           146.4883428 
+             prior_mu          prior_sigma2 
+           -1.8054007           123.7744143 
+
+[[83]]$post_prob_p
+[1] 0.9977
+
+
+[[84]]
+[[84]]$treatment_means
+       alpha_discount                 p_hat          posterior_mu 
+            0.9649090             0.4711129            -8.1097234 
+     posterior_sigma2     posterior_flat_mu posterior_flat_sigma2 
+            0.7481919            -7.9213569           142.0568292 
+             prior_mu          prior_sigma2 
+           -8.7988933           123.6419632 
+
+[[84]]$control_means
+       alpha_discount                 p_hat          posterior_mu 
+            0.9668195             0.4831487            -2.2879611 
+     posterior_sigma2     posterior_flat_mu posterior_flat_sigma2 
+            1.2203164            -2.5392758           138.6994186 
+             prior_mu          prior_sigma2 
+           -1.8061834           123.5736456 
+
+[[84]]$post_prob_p
+[1] 1
+
+
+[[85]]
+[[85]]$treatment_means
+       alpha_discount                 p_hat          posterior_mu 
+            0.9296890             0.4014597            -7.4535662 
+     posterior_sigma2     posterior_flat_mu posterior_flat_sigma2 
+            0.7746349            -7.0949725           146.4239740 
+             prior_mu          prior_sigma2 
+           -8.8159677           124.0173528 
+
+[[85]]$control_means
+       alpha_discount                 p_hat          posterior_mu 
+            0.9721856             0.4890625            -2.2611736 
+     posterior_sigma2     posterior_flat_mu posterior_flat_sigma2 
+            1.2035920            -2.5097171           136.4609426 
+             prior_mu          prior_sigma2 
+           -1.8202778           123.3713386 
+
+[[85]]$post_prob_p
+[1] 1
+
+
+[[86]]
+[[86]]$treatment_means
+       alpha_discount                 p_hat          posterior_mu 
+            0.8121668             0.2706735            -6.4301733 
+     posterior_sigma2     posterior_flat_mu posterior_flat_sigma2 
+            0.8218932            -5.8803515           151.0296260 
+             prior_mu          prior_sigma2 
+           -8.7961297           123.8471485 
+
+[[86]]$control_means
+       alpha_discount                 p_hat          posterior_mu 
+            0.9554776             0.4527627            -0.9769679 
+     posterior_sigma2     posterior_flat_mu posterior_flat_sigma2 
+            1.1932422            -0.5293306           133.0104492 
+             prior_mu          prior_sigma2 
+           -1.7985351           123.5746112 
+
+[[86]]$post_prob_p
+[1] 1
+
+
+[[87]]
+[[87]]$treatment_means
+       alpha_discount                 p_hat          posterior_mu 
+            0.7141152             0.1987890            -5.8265912 
+     posterior_sigma2     posterior_flat_mu posterior_flat_sigma2 
+            0.8340989            -5.2094226           148.5893566 
+             prior_mu          prior_sigma2 
+           -8.7970334           123.3509148 
+
+[[87]]$control_means
+       alpha_discount                 p_hat          posterior_mu 
+            0.9516174             0.4399155            -0.8433993 
+     posterior_sigma2     posterior_flat_mu posterior_flat_sigma2 
+            1.1879300            -0.3808505           131.5457200 
+             prior_mu          prior_sigma2 
+           -1.7915778           123.8012567 
+
+[[87]]$post_prob_p
+[1] 0.9993
+
+
+[[88]]
+[[88]]$treatment_means
+       alpha_discount                 p_hat          posterior_mu 
+            0.9540135             0.4499450            -7.8911036 
+     posterior_sigma2     posterior_flat_mu posterior_flat_sigma2 
+            0.7850142            -7.6278420           150.3585360 
+             prior_mu          prior_sigma2 
+           -8.7912459           123.9772790 
+
+[[88]]$control_means
+       alpha_discount                 p_hat          posterior_mu 
+            0.9776101             0.4996183            -1.8420356 
+     posterior_sigma2     posterior_flat_mu posterior_flat_sigma2 
+            1.3295614            -1.8636099           160.4134572 
+             prior_mu          prior_sigma2 
+           -1.8021447           123.5435999 
+
+[[88]]$post_prob_p
+[1] 1
+
+
+[[89]]
+[[89]]$treatment_means
+       alpha_discount                 p_hat          posterior_mu 
+            0.8403369             0.2989459            -6.6485674 
+     posterior_sigma2     posterior_flat_mu posterior_flat_sigma2 
+            0.6982182            -6.2071376           125.1692049 
+             prior_mu          prior_sigma2 
+           -8.8121811           123.3730152 
+
+[[89]]$control_means
+       alpha_discount                 p_hat          posterior_mu 
+            0.9698514             0.4819784            -1.3170181 
+     posterior_sigma2     posterior_flat_mu posterior_flat_sigma2 
+            1.4417041            -0.9606625           182.2002596 
+             prior_mu          prior_sigma2 
+           -1.7979744           123.4618231 
+
+[[89]]$post_prob_p
+[1] 0.9995
+
+
+[[90]]
+[[90]]$treatment_means
+       alpha_discount                 p_hat          posterior_mu 
+            0.9046349             0.3633356            -7.1386776 
+     posterior_sigma2     posterior_flat_mu posterior_flat_sigma2 
+            0.6823738            -6.7611887           124.1916759 
+             prior_mu          prior_sigma2 
+           -8.7791455           123.2697672 
+
+[[90]]$control_means
+       alpha_discount                 p_hat          posterior_mu 
+            0.9788741             0.4957925            -2.0321162 
+     posterior_sigma2     posterior_flat_mu posterior_flat_sigma2 
+            1.2919102            -2.2156209           153.1333287 
+             prior_mu          prior_sigma2 
+           -1.8113558           123.5581140 
+
+[[90]]$post_prob_p
+[1] 0.9999
+
+
+[[91]]
+[[91]]$treatment_means
+       alpha_discount                 p_hat          posterior_mu 
+            0.8089977             0.2669154            -6.4141140 
+     posterior_sigma2     posterior_flat_mu posterior_flat_sigma2 
+            0.6880390            -5.9465044           121.7494975 
+             prior_mu          prior_sigma2 
+           -8.8259159           123.4706659 
+
+[[91]]$control_means
+       alpha_discount                 p_hat          posterior_mu 
+            0.9755684             0.4988024            -1.6680571 
+     posterior_sigma2     posterior_flat_mu posterior_flat_sigma2 
+            1.1360426            -1.5958761           125.0237623 
+             prior_mu          prior_sigma2 
+           -1.7868514           124.4009334 
+
+[[91]]$post_prob_p
+[1] 0.9999
+
+
+[[92]]
+[[92]]$treatment_means
+       alpha_discount                 p_hat          posterior_mu 
+            0.8141082             0.2694184            -6.4591725 
+     posterior_sigma2     posterior_flat_mu posterior_flat_sigma2 
+            0.8538815            -5.8612262           158.4664376 
+             prior_mu          prior_sigma2 
+           -8.7965676           123.7977775 
+
+[[92]]$control_means
+       alpha_discount                 p_hat          posterior_mu 
+            0.8875019             0.3433121            -3.4435534 
+     posterior_sigma2     posterior_flat_mu posterior_flat_sigma2 
+            1.3893851            -4.3601529           158.0402451 
+             prior_mu          prior_sigma2 
+           -1.8268184           123.7340049 
+
+[[92]]$post_prob_p
+[1] 0.9733
+
+
+[[93]]
+[[93]]$treatment_means
+       alpha_discount                 p_hat          posterior_mu 
+            0.8991706             0.3645742            -7.1239380 
+     posterior_sigma2     posterior_flat_mu posterior_flat_sigma2 
+            0.7556216            -6.6944521           140.4832667 
+             prior_mu          prior_sigma2 
+           -8.8002916           123.8579043 
+
+[[93]]$control_means
+       alpha_discount                 p_hat          posterior_mu 
+            0.9773413             0.4971504            -1.7418126 
+     posterior_sigma2     posterior_flat_mu posterior_flat_sigma2 
+            1.5329216            -1.6906928           204.1083967 
+             prior_mu          prior_sigma2 
+           -1.8264715           123.3996893 
+
+[[93]]$post_prob_p
+[1] 0.9995
+
+
+[[94]]
+[[94]]$treatment_means
+       alpha_discount                 p_hat          posterior_mu 
+            0.8745181             0.3365787            -6.9388518 
+     posterior_sigma2     posterior_flat_mu posterior_flat_sigma2 
+            0.8319360            -6.4284906           157.0236760 
+             prior_mu          prior_sigma2 
+           -8.7907588           123.7301743 
+
+[[94]]$control_means
+       alpha_discount                 p_hat          posterior_mu 
+            0.9557925             0.4497201            -2.6362153 
+     posterior_sigma2     posterior_flat_mu posterior_flat_sigma2 
+            1.3088612            -3.1310129           153.5811802 
+             prior_mu          prior_sigma2 
+           -1.8108838           123.2105553 
+
+[[94]]$post_prob_p
+[1] 0.9968
+
+
+[[95]]
+[[95]]$treatment_means
+       alpha_discount                 p_hat          posterior_mu 
+            0.7736181             0.2373840            -6.1955443 
+     posterior_sigma2     posterior_flat_mu posterior_flat_sigma2 
+            0.7859153            -5.6252769           141.1216827 
+             prior_mu          prior_sigma2 
+           -8.8077530           123.5182766 
+
+[[95]]$control_means
+       alpha_discount                 p_hat          posterior_mu 
+            0.9728989             0.4904574            -2.1066820 
+     posterior_sigma2     posterior_flat_mu posterior_flat_sigma2 
+            1.2686699            -2.2807265           147.7302383 
+             prior_mu          prior_sigma2 
+           -1.7863550           124.1942247 
+
+[[95]]$post_prob_p
+[1] 0.9966
+
+
+[[96]]
+[[96]]$treatment_means
+       alpha_discount                 p_hat          posterior_mu 
+            0.9616944             0.4713409            -8.0856623 
+     posterior_sigma2     posterior_flat_mu posterior_flat_sigma2 
+            0.8616939            -7.8678437           170.3421856 
+             prior_mu          prior_sigma2 
+           -8.7900665           123.9317296 
+
+[[96]]$control_means
+       alpha_discount                 p_hat          posterior_mu 
+            0.8457352             0.2992714            -3.7523833 
+     posterior_sigma2     posterior_flat_mu posterior_flat_sigma2 
+            1.5378991            -4.8358552           176.8031940 
+             prior_mu          prior_sigma2 
+           -1.7945865           123.8324360 
+
+[[96]]$post_prob_p
+[1] 0.9935
+
+
+[[97]]
+[[97]]$treatment_means
+       alpha_discount                 p_hat          posterior_mu 
+            0.6807682             0.1826817            -5.6271739 
+     posterior_sigma2     posterior_flat_mu posterior_flat_sigma2 
+            0.7385055            -5.1158916           127.4391173 
+             prior_mu          prior_sigma2 
+           -8.8207837           123.9430610 
+
+[[97]]$control_means
+       alpha_discount                 p_hat          posterior_mu 
+            0.9761673             0.4975696            -1.6953476 
+     posterior_sigma2     posterior_flat_mu posterior_flat_sigma2 
+            1.2517807            -1.6466830           145.7354559 
+             prior_mu          prior_sigma2 
+           -1.7910666           123.2589225 
+
+[[97]]$post_prob_p
+[1] 0.9963
+
+
+[[98]]
+[[98]]$treatment_means
+       alpha_discount                 p_hat          posterior_mu 
+            0.9694866             0.4862305            -8.2877495 
+     posterior_sigma2     posterior_flat_mu posterior_flat_sigma2 
+            0.7714168            -8.1362661           147.9783462 
+             prior_mu          prior_sigma2 
+           -8.8085112           123.7336517 
+
+[[98]]$control_means
+       alpha_discount                 p_hat          posterior_mu 
+            0.9765392             0.4956439            -1.8001524 
+     posterior_sigma2     posterior_flat_mu posterior_flat_sigma2 
+            1.3441417            -1.8039817           162.4859031 
+             prior_mu          prior_sigma2 
+           -1.8001242           124.1945933 
+
+[[98]]$post_prob_p
+[1] 1
+
+
+[[99]]
+[[99]]$treatment_means
+       alpha_discount                 p_hat          posterior_mu 
+            0.8625073             0.3220897            -6.8474278 
+     posterior_sigma2     posterior_flat_mu posterior_flat_sigma2 
+            0.7808040            -6.3542205           144.3905668 
+             prior_mu          prior_sigma2 
+           -8.8168455           124.0982952 
+
+[[99]]$control_means
+       alpha_discount                 p_hat          posterior_mu 
+            0.9229736             0.3940540            -0.5317766 
+     posterior_sigma2     posterior_flat_mu posterior_flat_sigma2 
+            1.5151498             0.3212277           186.9205977 
+             prior_mu          prior_sigma2 
+           -1.8132753           123.8221048 
+
+[[99]]$post_prob_p
+[1] 0.9999
+
+
+[[100]]
+[[100]]$treatment_means
+       alpha_discount                 p_hat          posterior_mu 
+            0.9581602             0.4587716            -7.9260592 
+     posterior_sigma2     posterior_flat_mu posterior_flat_sigma2 
+            0.6588241            -7.7113855           120.8414915 
+             prior_mu          prior_sigma2 
+           -8.7530126           123.5871308 
+
+[[100]]$control_means
+       alpha_discount                 p_hat          posterior_mu 
+            0.9752128             0.4977285            -1.9781488 
+     posterior_sigma2     posterior_flat_mu posterior_flat_sigma2 
+            1.0453340            -2.0799090           111.1058114 
+             prior_mu          prior_sigma2 
+           -1.7969676           123.4249724 
+
+[[100]]$post_prob_p
+[1] 1</code></pre>
+</div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb13"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb13-1"><a href="#cb13-1" aria-hidden="true" tabindex="-1"></a>post_probs <span class="ot">&lt;-</span> <span class="fu">get_elem</span>(first_sims, <span class="st">"post_prob_p"</span>) <span class="sc">|&gt;</span> <span class="fu">unlist</span>()</span>
+<span id="cb13-2"><a href="#cb13-2" aria-hidden="true" tabindex="-1"></a><span class="fu">mean</span>(post_probs <span class="sc">&gt;</span> .<span class="dv">975</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>[1] 0.95</code></pre>
+</div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb15"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb15-1"><a href="#cb15-1" aria-hidden="true" tabindex="-1"></a>boot<span class="sc">::</span><span class="fu">boot</span>(post_probs, <span class="cf">function</span>(.data, .ind) <span class="fu">mean</span>(.data[.ind] <span class="sc">&gt;</span> .<span class="dv">975</span>), <span class="at">R =</span> <span class="dv">1000</span>) <span class="sc">|&gt;</span> boot<span class="sc">::</span><span class="fu">boot.ci</span>(<span class="at">type =</span> <span class="st">"perc"</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>BOOTSTRAP CONFIDENCE INTERVAL CALCULATIONS
+Based on 1000 bootstrap replicates
+
+CALL : 
+boot::boot.ci(boot.out = boot::boot(post_probs, function(.data, 
+    .ind) mean(.data[.ind] &gt; 0.975), R = 1000), type = "perc")
+
+Intervals : 
+Level     Percentile     
+95%   ( 0.91,  0.99 )  
+Calculations and Intervals on Original Scale</code></pre>
+</div>
+</div>
+</section>
+<section id="next-steps" class="level2">
+<h2 class="anchored" data-anchor-id="next-steps">Next Steps</h2>
+<ul>
+<li>Incorporate interim analyses</li>
+<li>Do the math by hand</li>
+<li>Rewrite with STAN</li>
+</ul>
 
 
 
 </section>
 
-<div id="quarto-appendix" class="default"><section class="quarto-appendix-contents" role="doc-bibliography"><h2 class="anchored quarto-appendix-heading">References</h2><div id="refs" class="references csl-bib-body hanging-indent" role="list">
+<div id="quarto-appendix" class="default"><section class="quarto-appendix-contents" role="doc-bibliography" id="quarto-bibliography"><h2 class="anchored quarto-appendix-heading">References</h2><div id="refs" class="references csl-bib-body hanging-indent" role="list">
+<div id="ref-baysdp" class="csl-entry" role="listitem">
+Balcome, Shawn, Donnie Musgrove, Tarek Haddad, and Graeme L. Hickey. 2022. <em>bayesDP: Implementation of the Bayesian Discount Prior Approach for Clinical Trials</em>. <a href="https://github.com/graemeleehickey/bayesDP">https://github.com/graemeleehickey/bayesDP</a>.
+</div>
 <div id="ref-böhm2020" class="csl-entry" role="listitem">
-Böhm, Michael, Raymond R. Townsend, Kazuomi Kario, David Kandzari, Felix Mahfoud, Michael A. Weber, Roland E. Schmieder, et al. 2020. <span>“Rationale and design of two randomized sham-controlled trials of catheter-based renal denervation in subjects with uncontrolled hypertension in the absence (SPYRAL HTN-OFF MED Pivotal) and presence (SPYRAL HTN-ON MED Expansion) of antihypertensive medications: a novel approach using Bayesian design.”</span> <em>Clinical Research in Cardiology: Official Journal of the German Cardiac Society</em> 109 (3): 289–302. <a href="https://doi.org/10.1007/s00392-020-01595-z">https://doi.org/10.1007/s00392-020-01595-z</a>.
+Böhm, Michael, Raymond R. Townsend, Kazuomi Kario, et al. 2020. <span>“Rationale and design of two randomized sham-controlled trials of catheter-based renal denervation in subjects with uncontrolled hypertension in the absence (SPYRAL HTN-OFF MED Pivotal) and presence (SPYRAL HTN-ON MED Expansion) of antihypertensive medications: a novel approach using Bayesian design.”</span> <em>Clinical Research in Cardiology: Official Journal of the German Cardiac Society</em> 109 (3): 289–302. <a href="https://doi.org/10.1007/s00392-020-01595-z">https://doi.org/10.1007/s00392-020-01595-z</a>.
 </div>
 <div id="ref-haddad2017" class="csl-entry" role="listitem">
-Haddad, Tarek, Adam Himes, Laura Thompson, Telba Irony, and Rajesh Nair. 2017. <span>“Incorporation of Stochastic Engineering Models as Prior Information in Bayesian Medical Device Trials.”</span> <em>Journal of Biopharmaceutical Statistics</em> 27 (6): 1089–1103. <a href="https://doi.org/10.1080/10543406.2017.1300907">https://doi.org/10.1080/10543406.2017.1300907</a>.
+Haddad, Tarek, Adam Himes, Laura Thompson, Telba Irony, and Rajesh Nair. 2017. <span>“Incorporation of Stochastic Engineering Models as Prior Information in Bayesian Medical Device Trials.”</span> <em>Journal of Biopharmaceutical Statistics</em> 27 (6): 1089–103. <a href="https://doi.org/10.1080/10543406.2017.1300907">https://doi.org/10.1080/10543406.2017.1300907</a>.
 </div>
 <div id="ref-viele2014" class="csl-entry" role="listitem">
-Viele, Kert, Scott Berry, Beat Neuenschwander, Billy Amzal, Fang Chen, Nathan Enas, Brian Hobbs, et al. 2014. <span>“Use of historical control data for assessing treatment effects in clinical trials.”</span> <em>Pharmaceutical Statistics</em> 13 (1): 41–54. <a href="https://doi.org/10.1002/pst.1589">https://doi.org/10.1002/pst.1589</a>.
+Viele, Kert, Scott Berry, Beat Neuenschwander, et al. 2014. <span>“Use of historical control data for assessing treatment effects in clinical trials.”</span> <em>Pharmaceutical Statistics</em> 13 (1): 41–54. <a href="https://doi.org/10.1002/pst.1589">https://doi.org/10.1002/pst.1589</a>.
 </div>
 </div></section></div></main> <!-- /main -->
 <script id="quarto-html-after-body" type="application/javascript">
-window.document.addEventListener("DOMContentLoaded", function (event) {
-  const toggleBodyColorMode = (bsSheetEl) => {
-    const mode = bsSheetEl.getAttribute("data-mode");
-    const bodyEl = window.document.querySelector("body");
-    if (mode === "dark") {
-      bodyEl.classList.add("quarto-dark");
-      bodyEl.classList.remove("quarto-light");
-    } else {
-      bodyEl.classList.add("quarto-light");
-      bodyEl.classList.remove("quarto-dark");
-    }
-  }
-  const toggleBodyColorPrimary = () => {
-    const bsSheetEl = window.document.querySelector("link#quarto-bootstrap");
-    if (bsSheetEl) {
-      toggleBodyColorMode(bsSheetEl);
-    }
-  }
-  toggleBodyColorPrimary();  
-  const icon = "";
-  const anchorJS = new window.AnchorJS();
-  anchorJS.options = {
-    placement: 'right',
-    icon: icon
-  };
-  anchorJS.add('.anchored');
-  const isCodeAnnotation = (el) => {
-    for (const clz of el.classList) {
-      if (clz.startsWith('code-annotation-')) {                     
-        return true;
+  window.document.addEventListener("DOMContentLoaded", function (event) {
+    const icon = "";
+    const anchorJS = new window.AnchorJS();
+    anchorJS.options = {
+      placement: 'right',
+      icon: icon
+    };
+    anchorJS.add('.anchored');
+    const isCodeAnnotation = (el) => {
+      for (const clz of el.classList) {
+        if (clz.startsWith('code-annotation-')) {                     
+          return true;
+        }
       }
+      return false;
     }
-    return false;
-  }
-  const clipboard = new window.ClipboardJS('.code-copy-button', {
-    text: function(trigger) {
-      const codeEl = trigger.previousElementSibling.cloneNode(true);
+    const onCopySuccess = function(e) {
+      // button target
+      const button = e.trigger;
+      // don't keep focus
+      button.blur();
+      // flash "checked"
+      button.classList.add('code-copy-button-checked');
+      var currentTitle = button.getAttribute("title");
+      button.setAttribute("title", "Copied!");
+      let tooltip;
+      if (window.bootstrap) {
+        button.setAttribute("data-bs-toggle", "tooltip");
+        button.setAttribute("data-bs-placement", "left");
+        button.setAttribute("data-bs-title", "Copied!");
+        tooltip = new bootstrap.Tooltip(button, 
+          { trigger: "manual", 
+            customClass: "code-copy-button-tooltip",
+            offset: [0, -8]});
+        tooltip.show();    
+      }
+      setTimeout(function() {
+        if (tooltip) {
+          tooltip.hide();
+          button.removeAttribute("data-bs-title");
+          button.removeAttribute("data-bs-toggle");
+          button.removeAttribute("data-bs-placement");
+        }
+        button.setAttribute("title", currentTitle);
+        button.classList.remove('code-copy-button-checked');
+      }, 1000);
+      // clear code selection
+      e.clearSelection();
+    }
+    const getTextToCopy = function(trigger) {
+      const outerScaffold = trigger.parentElement.cloneNode(true);
+      const codeEl = outerScaffold.querySelector('code');
       for (const childEl of codeEl.children) {
         if (isCodeAnnotation(childEl)) {
           childEl.remove();
@@ -314,195 +2668,348 @@ window.document.addEventListener("DOMContentLoaded", function (event) {
       }
       return codeEl.innerText;
     }
-  });
-  clipboard.on('success', function(e) {
-    // button target
-    const button = e.trigger;
-    // don't keep focus
-    button.blur();
-    // flash "checked"
-    button.classList.add('code-copy-button-checked');
-    var currentTitle = button.getAttribute("title");
-    button.setAttribute("title", "Copied!");
-    let tooltip;
-    if (window.bootstrap) {
-      button.setAttribute("data-bs-toggle", "tooltip");
-      button.setAttribute("data-bs-placement", "left");
-      button.setAttribute("data-bs-title", "Copied!");
-      tooltip = new bootstrap.Tooltip(button, 
-        { trigger: "manual", 
-          customClass: "code-copy-button-tooltip",
-          offset: [0, -8]});
-      tooltip.show();    
-    }
-    setTimeout(function() {
-      if (tooltip) {
-        tooltip.hide();
-        button.removeAttribute("data-bs-title");
-        button.removeAttribute("data-bs-toggle");
-        button.removeAttribute("data-bs-placement");
-      }
-      button.setAttribute("title", currentTitle);
-      button.classList.remove('code-copy-button-checked');
-    }, 1000);
-    // clear code selection
-    e.clearSelection();
-  });
-  function tippyHover(el, contentFn) {
-    const config = {
-      allowHTML: true,
-      content: contentFn,
-      maxWidth: 500,
-      delay: 100,
-      arrow: false,
-      appendTo: function(el) {
-          return el.parentElement;
-      },
-      interactive: true,
-      interactiveBorder: 10,
-      theme: 'quarto',
-      placement: 'bottom-start'
-    };
-    window.tippy(el, config); 
-  }
-  const noterefs = window.document.querySelectorAll('a[role="doc-noteref"]');
-  for (var i=0; i<noterefs.length; i++) {
-    const ref = noterefs[i];
-    tippyHover(ref, function() {
-      // use id or data attribute instead here
-      let href = ref.getAttribute('data-footnote-href') || ref.getAttribute('href');
-      try { href = new URL(href).hash; } catch {}
-      const id = href.replace(/^#\/?/, "");
-      const note = window.document.getElementById(id);
-      return note.innerHTML;
+    const clipboard = new window.ClipboardJS('.code-copy-button:not([data-in-quarto-modal])', {
+      text: getTextToCopy
     });
-  }
-      let selectedAnnoteEl;
-      const selectorForAnnotation = ( cell, annotation) => {
-        let cellAttr = 'data-code-cell="' + cell + '"';
-        let lineAttr = 'data-code-annotation="' +  annotation + '"';
-        const selector = 'span[' + cellAttr + '][' + lineAttr + ']';
-        return selector;
-      }
-      const selectCodeLines = (annoteEl) => {
-        const doc = window.document;
-        const targetCell = annoteEl.getAttribute("data-target-cell");
-        const targetAnnotation = annoteEl.getAttribute("data-target-annotation");
-        const annoteSpan = window.document.querySelector(selectorForAnnotation(targetCell, targetAnnotation));
-        const lines = annoteSpan.getAttribute("data-code-lines").split(",");
-        const lineIds = lines.map((line) => {
-          return targetCell + "-" + line;
-        })
-        let top = null;
-        let height = null;
-        let parent = null;
-        if (lineIds.length > 0) {
-            //compute the position of the single el (top and bottom and make a div)
-            const el = window.document.getElementById(lineIds[0]);
-            top = el.offsetTop;
-            height = el.offsetHeight;
-            parent = el.parentElement.parentElement;
-          if (lineIds.length > 1) {
-            const lastEl = window.document.getElementById(lineIds[lineIds.length - 1]);
-            const bottom = lastEl.offsetTop + lastEl.offsetHeight;
-            height = bottom - top;
-          }
-          if (top !== null && height !== null && parent !== null) {
-            // cook up a div (if necessary) and position it 
-            let div = window.document.getElementById("code-annotation-line-highlight");
-            if (div === null) {
-              div = window.document.createElement("div");
-              div.setAttribute("id", "code-annotation-line-highlight");
-              div.style.position = 'absolute';
-              parent.appendChild(div);
-            }
-            div.style.top = top - 2 + "px";
-            div.style.height = height + 4 + "px";
-            let gutterDiv = window.document.getElementById("code-annotation-line-highlight-gutter");
-            if (gutterDiv === null) {
-              gutterDiv = window.document.createElement("div");
-              gutterDiv.setAttribute("id", "code-annotation-line-highlight-gutter");
-              gutterDiv.style.position = 'absolute';
-              const codeCell = window.document.getElementById(targetCell);
-              const gutter = codeCell.querySelector('.code-annotation-gutter');
-              gutter.appendChild(gutterDiv);
-            }
-            gutterDiv.style.top = top - 2 + "px";
-            gutterDiv.style.height = height + 4 + "px";
-          }
-          selectedAnnoteEl = annoteEl;
-        }
-      };
-      const unselectCodeLines = () => {
-        const elementsIds = ["code-annotation-line-highlight", "code-annotation-line-highlight-gutter"];
-        elementsIds.forEach((elId) => {
-          const div = window.document.getElementById(elId);
-          if (div) {
-            div.remove();
-          }
-        });
-        selectedAnnoteEl = undefined;
-      };
-      // Attach click handler to the DT
-      const annoteDls = window.document.querySelectorAll('dt[data-target-cell]');
-      for (const annoteDlNode of annoteDls) {
-        annoteDlNode.addEventListener('click', (event) => {
-          const clickedEl = event.target;
-          if (clickedEl !== selectedAnnoteEl) {
-            unselectCodeLines();
-            const activeEl = window.document.querySelector('dt[data-target-cell].code-annotation-active');
-            if (activeEl) {
-              activeEl.classList.remove('code-annotation-active');
-            }
-            selectCodeLines(clickedEl);
-            clickedEl.classList.add('code-annotation-active');
-          } else {
-            // Unselect the line
-            unselectCodeLines();
-            clickedEl.classList.remove('code-annotation-active');
-          }
-        });
-      }
-  const findCites = (el) => {
-    const parentEl = el.parentElement;
-    if (parentEl) {
-      const cites = parentEl.dataset.cites;
-      if (cites) {
-        return {
-          el,
-          cites: cites.split(' ')
-        };
-      } else {
-        return findCites(el.parentElement)
-      }
-    } else {
-      return undefined;
+    clipboard.on('success', onCopySuccess);
+    if (window.document.getElementById('quarto-embedded-source-code-modal')) {
+      const clipboardModal = new window.ClipboardJS('.code-copy-button[data-in-quarto-modal]', {
+        text: getTextToCopy,
+        container: window.document.getElementById('quarto-embedded-source-code-modal')
+      });
+      clipboardModal.on('success', onCopySuccess);
     }
-  };
-  var bibliorefs = window.document.querySelectorAll('a[role="doc-biblioref"]');
-  for (var i=0; i<bibliorefs.length; i++) {
-    const ref = bibliorefs[i];
-    const citeInfo = findCites(ref);
-    if (citeInfo) {
-      tippyHover(citeInfo.el, function() {
-        var popup = window.document.createElement('div');
-        citeInfo.cites.forEach(function(cite) {
-          var citeDiv = window.document.createElement('div');
-          citeDiv.classList.add('hanging-indent');
-          citeDiv.classList.add('csl-entry');
-          var biblioDiv = window.document.getElementById('ref-' + cite);
-          if (biblioDiv) {
-            citeDiv.innerHTML = biblioDiv.innerHTML;
+      var localhostRegex = new RegExp(/^(?:http|https):\/\/localhost\:?[0-9]*\//);
+      var mailtoRegex = new RegExp(/^mailto:/);
+        var filterRegex = new RegExp('/' + window.location.host + '/');
+      var isInternal = (href) => {
+          return filterRegex.test(href) || localhostRegex.test(href) || mailtoRegex.test(href);
+      }
+      // Inspect non-navigation links and adorn them if external
+     var links = window.document.querySelectorAll('a[href]:not(.nav-link):not(.navbar-brand):not(.toc-action):not(.sidebar-link):not(.sidebar-item-toggle):not(.pagination-link):not(.no-external):not([aria-hidden]):not(.dropdown-item):not(.quarto-navigation-tool):not(.about-link)');
+      for (var i=0; i<links.length; i++) {
+        const link = links[i];
+        if (!isInternal(link.href)) {
+          // undo the damage that might have been done by quarto-nav.js in the case of
+          // links that we want to consider external
+          if (link.dataset.originalHref !== undefined) {
+            link.href = link.dataset.originalHref;
           }
-          popup.appendChild(citeDiv);
-        });
-        return popup.innerHTML;
+        }
+      }
+    function tippyHover(el, contentFn, onTriggerFn, onUntriggerFn) {
+      const config = {
+        allowHTML: true,
+        maxWidth: 500,
+        delay: 100,
+        arrow: false,
+        appendTo: function(el) {
+            return el.parentElement;
+        },
+        interactive: true,
+        interactiveBorder: 10,
+        theme: 'quarto',
+        placement: 'bottom-start',
+      };
+      if (contentFn) {
+        config.content = contentFn;
+      }
+      if (onTriggerFn) {
+        config.onTrigger = onTriggerFn;
+      }
+      if (onUntriggerFn) {
+        config.onUntrigger = onUntriggerFn;
+      }
+      window.tippy(el, config); 
+    }
+    const noterefs = window.document.querySelectorAll('a[role="doc-noteref"]');
+    for (var i=0; i<noterefs.length; i++) {
+      const ref = noterefs[i];
+      tippyHover(ref, function() {
+        // use id or data attribute instead here
+        let href = ref.getAttribute('data-footnote-href') || ref.getAttribute('href');
+        try { href = new URL(href).hash; } catch {}
+        const id = href.replace(/^#\/?/, "");
+        const note = window.document.getElementById(id);
+        if (note) {
+          return note.innerHTML;
+        } else {
+          return "";
+        }
       });
     }
-  }
-});
-</script>
+    const xrefs = window.document.querySelectorAll('a.quarto-xref');
+    const processXRef = (id, note) => {
+      // Strip column container classes
+      const stripColumnClz = (el) => {
+        el.classList.remove("page-full", "page-columns");
+        if (el.children) {
+          for (const child of el.children) {
+            stripColumnClz(child);
+          }
+        }
+      }
+      stripColumnClz(note)
+      if (id === null || id.startsWith('sec-')) {
+        // Special case sections, only their first couple elements
+        const container = document.createElement("div");
+        if (note.children && note.children.length > 2) {
+          container.appendChild(note.children[0].cloneNode(true));
+          for (let i = 1; i < note.children.length; i++) {
+            const child = note.children[i];
+            if (child.tagName === "P" && child.innerText === "") {
+              continue;
+            } else {
+              container.appendChild(child.cloneNode(true));
+              break;
+            }
+          }
+          if (window.Quarto?.typesetMath) {
+            window.Quarto.typesetMath(container);
+          }
+          return container.innerHTML
+        } else {
+          if (window.Quarto?.typesetMath) {
+            window.Quarto.typesetMath(note);
+          }
+          return note.innerHTML;
+        }
+      } else {
+        // Remove any anchor links if they are present
+        const anchorLink = note.querySelector('a.anchorjs-link');
+        if (anchorLink) {
+          anchorLink.remove();
+        }
+        if (window.Quarto?.typesetMath) {
+          window.Quarto.typesetMath(note);
+        }
+        if (note.classList.contains("callout")) {
+          return note.outerHTML;
+        } else {
+          return note.innerHTML;
+        }
+      }
+    }
+    for (var i=0; i<xrefs.length; i++) {
+      const xref = xrefs[i];
+      tippyHover(xref, undefined, function(instance) {
+        instance.disable();
+        let url = xref.getAttribute('href');
+        let hash = undefined; 
+        if (url.startsWith('#')) {
+          hash = url;
+        } else {
+          try { hash = new URL(url).hash; } catch {}
+        }
+        if (hash) {
+          const id = hash.replace(/^#\/?/, "");
+          const note = window.document.getElementById(id);
+          if (note !== null) {
+            try {
+              const html = processXRef(id, note.cloneNode(true));
+              instance.setContent(html);
+            } finally {
+              instance.enable();
+              instance.show();
+            }
+          } else {
+            // See if we can fetch this
+            fetch(url.split('#')[0])
+            .then(res => res.text())
+            .then(html => {
+              const parser = new DOMParser();
+              const htmlDoc = parser.parseFromString(html, "text/html");
+              const note = htmlDoc.getElementById(id);
+              if (note !== null) {
+                const html = processXRef(id, note);
+                instance.setContent(html);
+              } 
+            }).finally(() => {
+              instance.enable();
+              instance.show();
+            });
+          }
+        } else {
+          // See if we can fetch a full url (with no hash to target)
+          // This is a special case and we should probably do some content thinning / targeting
+          fetch(url)
+          .then(res => res.text())
+          .then(html => {
+            const parser = new DOMParser();
+            const htmlDoc = parser.parseFromString(html, "text/html");
+            const note = htmlDoc.querySelector('main.content');
+            if (note !== null) {
+              // This should only happen for chapter cross references
+              // (since there is no id in the URL)
+              // remove the first header
+              if (note.children.length > 0 && note.children[0].tagName === "HEADER") {
+                note.children[0].remove();
+              }
+              const html = processXRef(null, note);
+              instance.setContent(html);
+            } 
+          }).finally(() => {
+            instance.enable();
+            instance.show();
+          });
+        }
+      }, function(instance) {
+      });
+    }
+        let selectedAnnoteEl;
+        const selectorForAnnotation = ( cell, annotation) => {
+          let cellAttr = 'data-code-cell="' + cell + '"';
+          let lineAttr = 'data-code-annotation="' +  annotation + '"';
+          const selector = 'span[' + cellAttr + '][' + lineAttr + ']';
+          return selector;
+        }
+        const selectCodeLines = (annoteEl) => {
+          const doc = window.document;
+          const targetCell = annoteEl.getAttribute("data-target-cell");
+          const targetAnnotation = annoteEl.getAttribute("data-target-annotation");
+          const annoteSpan = window.document.querySelector(selectorForAnnotation(targetCell, targetAnnotation));
+          const lines = annoteSpan.getAttribute("data-code-lines").split(",");
+          const lineIds = lines.map((line) => {
+            return targetCell + "-" + line;
+          })
+          let top = null;
+          let height = null;
+          let parent = null;
+          if (lineIds.length > 0) {
+              //compute the position of the single el (top and bottom and make a div)
+              const el = window.document.getElementById(lineIds[0]);
+              top = el.offsetTop;
+              height = el.offsetHeight;
+              parent = el.parentElement.parentElement;
+            if (lineIds.length > 1) {
+              const lastEl = window.document.getElementById(lineIds[lineIds.length - 1]);
+              const bottom = lastEl.offsetTop + lastEl.offsetHeight;
+              height = bottom - top;
+            }
+            if (top !== null && height !== null && parent !== null) {
+              // cook up a div (if necessary) and position it 
+              let div = window.document.getElementById("code-annotation-line-highlight");
+              if (div === null) {
+                div = window.document.createElement("div");
+                div.setAttribute("id", "code-annotation-line-highlight");
+                div.style.position = 'absolute';
+                parent.appendChild(div);
+              }
+              div.style.top = top - 2 + "px";
+              div.style.height = height + 4 + "px";
+              div.style.left = 0;
+              let gutterDiv = window.document.getElementById("code-annotation-line-highlight-gutter");
+              if (gutterDiv === null) {
+                gutterDiv = window.document.createElement("div");
+                gutterDiv.setAttribute("id", "code-annotation-line-highlight-gutter");
+                gutterDiv.style.position = 'absolute';
+                const codeCell = window.document.getElementById(targetCell);
+                const gutter = codeCell.querySelector('.code-annotation-gutter');
+                gutter.appendChild(gutterDiv);
+              }
+              gutterDiv.style.top = top - 2 + "px";
+              gutterDiv.style.height = height + 4 + "px";
+            }
+            selectedAnnoteEl = annoteEl;
+          }
+        };
+        const unselectCodeLines = () => {
+          const elementsIds = ["code-annotation-line-highlight", "code-annotation-line-highlight-gutter"];
+          elementsIds.forEach((elId) => {
+            const div = window.document.getElementById(elId);
+            if (div) {
+              div.remove();
+            }
+          });
+          selectedAnnoteEl = undefined;
+        };
+          // Handle positioning of the toggle
+      window.addEventListener(
+        "resize",
+        throttle(() => {
+          elRect = undefined;
+          if (selectedAnnoteEl) {
+            selectCodeLines(selectedAnnoteEl);
+          }
+        }, 10)
+      );
+      function throttle(fn, ms) {
+      let throttle = false;
+      let timer;
+        return (...args) => {
+          if(!throttle) { // first call gets through
+              fn.apply(this, args);
+              throttle = true;
+          } else { // all the others get throttled
+              if(timer) clearTimeout(timer); // cancel #2
+              timer = setTimeout(() => {
+                fn.apply(this, args);
+                timer = throttle = false;
+              }, ms);
+          }
+        };
+      }
+        // Attach click handler to the DT
+        const annoteDls = window.document.querySelectorAll('dt[data-target-cell]');
+        for (const annoteDlNode of annoteDls) {
+          annoteDlNode.addEventListener('click', (event) => {
+            const clickedEl = event.target;
+            if (clickedEl !== selectedAnnoteEl) {
+              unselectCodeLines();
+              const activeEl = window.document.querySelector('dt[data-target-cell].code-annotation-active');
+              if (activeEl) {
+                activeEl.classList.remove('code-annotation-active');
+              }
+              selectCodeLines(clickedEl);
+              clickedEl.classList.add('code-annotation-active');
+            } else {
+              // Unselect the line
+              unselectCodeLines();
+              clickedEl.classList.remove('code-annotation-active');
+            }
+          });
+        }
+    const findCites = (el) => {
+      const parentEl = el.parentElement;
+      if (parentEl) {
+        const cites = parentEl.dataset.cites;
+        if (cites) {
+          return {
+            el,
+            cites: cites.split(' ')
+          };
+        } else {
+          return findCites(el.parentElement)
+        }
+      } else {
+        return undefined;
+      }
+    };
+    var bibliorefs = window.document.querySelectorAll('a[role="doc-biblioref"]');
+    for (var i=0; i<bibliorefs.length; i++) {
+      const ref = bibliorefs[i];
+      const citeInfo = findCites(ref);
+      if (citeInfo) {
+        tippyHover(citeInfo.el, function() {
+          var popup = window.document.createElement('div');
+          citeInfo.cites.forEach(function(cite) {
+            var citeDiv = window.document.createElement('div');
+            citeDiv.classList.add('hanging-indent');
+            citeDiv.classList.add('csl-entry');
+            var biblioDiv = window.document.getElementById('ref-' + cite);
+            if (biblioDiv) {
+              citeDiv.innerHTML = biblioDiv.innerHTML;
+            }
+            popup.appendChild(citeDiv);
+          });
+          return popup.innerHTML;
+        });
+      }
+    }
+  });
+  </script>
 </div> <!-- /content -->
+
 
 
 
