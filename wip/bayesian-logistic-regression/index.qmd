@@ -1,100 +1,206 @@
 ---
 title: "Bayesian Logistic Regression"
 author: "Vitaly Druker"
+date: "2026-06-28"
 categories: [R, logistic regression, bayesian]
 ---
 
-```{r}
-library(brms)
-```
+# Introduction
+
+When I was recently analyzing cutoff points for a three arm study, I noticed that that treatment effect in one arm as compared to control (Arm A) was affected by the performance of how subjects did in Arm B. This was specifically in a logisitc regression situation where we don't have any nuisance variability parameters that could effect the estimates.
+
+This was specifically occurring with a Bayesian regression model (fit using `brms` but confirmed with `rJAGS`). It also does not seem to be an issue with frequentist models. 
+
+In this case, there was no explicitly modeled correlation between the parameter estimates of treatment A or B. Nevertheless, something seems to be going on that influences the estimate. 
+
+This post will first showcase the issue with some toy datasets and then attempt to characterize the problem more generally. In the end, I'm not sure what the solution is - other to keep it in mind when designing trials.
 
 
-## Notes
+# Example
 
-The issue is that it seems that in a Bayesian logistic regression, if you have a categorical variable with multiple levels (i.e. control, low dose, high dose) then the estimate of treatment effect in the high dose arm is influenced by what happens in the low dose arm.
+## Data Description
 
-
-
-
-
-## Example
-
+The function below creates  a dataframe with `n = 10` subject per arm. The inputs allow the user to specify how many subjects are successes in this trial. The first `x` subjects of each arm will be successes - while the rest will be failures.
 
 
 ```{r}
 n <- 10
 success_vector <- function(x, n) {
   c(
-    rep(1,x),
-    rep(0,n - x)
-
+    rep(1, x),
+    rep(0, n - x)
   )
 }
 
-d1 <- data.frame(
-  id = seq(1, n*3),
-  arm = rep(c("A", "B", "C"), each = n),
-  outcome = 
-    c(success_vector(5, n),
-  success_vector(5, n), success_vector(8, n))
+make_data <- function(success_a, success_b, success_c, n) {
+  data.frame(
+    id = seq(1, n * 3),
+    arm = rep(c("A", "B", "C"), each = n),
+    outcome =
+      c(
+        success_vector(success_a, n),
+        success_vector(success_b, n), success_vector(success_c, n)
+      )
+  )
+}
 
 
+d1 <- make_data(5, 8, 5, n = 10)
+d2 <- make_data(5, 8, 8, n = 10)
+```
 
-)
+`d1` and `d2` above only differ in the number of successes in Arm C, as you can see in the table below. The cells highlighted in light blue are the only ones that differ between the two data.frames.
 
-d2 <- data.frame(
-  id = seq(1, n*3),
-  arm = rep(c("A", "B", "C"), each = n),
-  outcome = 
-    c(success_vector(5, n),
-  success_vector(8, n), success_vector(8, n))
+```{r}
+library(flextable)
 
+joined_data <- d1 |> dplyr::left_join(d2, by = c("id", "arm"), suffix = c(".d1", ".d2"))
 
+diff_rows <- which(joined_data$outcome.d1 != joined_data$outcome.d2)
 
-)
+joined_data |>
+  flextable() |>
+  bg(i = diff_rows, bg = "#d4edf0", part = "body") |>
+  autofit()
+```
+
+The summary table below confirms this - the success rate in Arm C is the only one that differs between `d1` and `d2`.
+
+```{r}
+summary_table <- dplyr::bind_rows(
+  d1 |> dplyr::mutate(dataset = "d1"),
+  d2 |> dplyr::mutate(dataset = "d2")
+) |>
+  dplyr::group_by(dataset, arm) |>
+  dplyr::summarise(n = dplyr::n(), successes = sum(outcome), rate = successes / n, .groups = "drop") |>
+  tidyr::pivot_wider(names_from = dataset, values_from = c(successes, rate))
+
+rate_diff_rows <- which(summary_table$rate_d1 != summary_table$rate_d2)
+
+summary_table |>
+  flextable() |>
+  set_header_labels(
+    arm = "Arm", n = "N",
+    successes_d1 = "Successes (d1)", successes_d2 = "Successes (d2)",
+    rate_d1 = "Rate (d1)", rate_d2 = "Rate (d2)"
+  ) |>
+  colformat_double(j = c("rate_d1", "rate_d2"), digits = 2) |>
+  bg(i = rate_diff_rows, bg = "#d4edf0", part = "body") |>
+  autofit()
 ```
 
 
 
-With GLM, you get the same estimate for dose C
+
+If you received this data and were asked to characterize the treatment effect between Arm A and Arm B - would you expect the same answer? IN both cases there rate of success in A is 50%, while the rate of success is 80% in Arm B. 
+
+## Frequentist Logistic Regression
+
+With a logistic regression model you get an estimate of the odds ratio from the paramters - but you would still expect the same value from both.
+
+This is preciely what happens with the two logistic regression models:
 
 ```{r}
 
-glm(outcome ~ arm, data = d1, family = binomial) |> broom::tidy()
-glm(outcome ~ arm, data = d2, family = binomial) |> broom::tidy()
+tbl_d1 <- glm(outcome ~ arm, data = d1, family = binomial) |>
+  gtsummary::tbl_regression(
+    estimate_fun = gtsummary::label_style_number(digits = 3),
+    pvalue_fun = gtsummary::label_style_pvalue(digits = 3)
+  )
 
 
+tbl_d2 <- glm(outcome ~ arm, data = d2, family = binomial) |>
+  gtsummary::tbl_regression(
+    estimate_fun = gtsummary::label_style_number(digits = 3),
+    pvalue_fun = gtsummary::label_style_pvalue(digits = 3)
+  )
+
+
+gtsummary::tbl_merge(list(tbl_d1, tbl_d2), tab_spanner = c("D1", "D2"))
 ```
 
+Not in both cases, the estimate for Arm B is exactly the same - as expected. I've reported everything out to three digits just to really showcase this point.
+
+
+## Bayesian Model
+
+
+```{r}
+library(brms)
+```
 
 
 However, with a Bayesian logistic regression model you get different estimates for armC
 
 
 ```{r}
-
 model1 <- brm(outcome ~ arm,
-data = d1,
-family = bernoulli,
-init = 0, seed = 20260622,
-chains = 4, warmup = 1000, iter = 3500,
-refresh = 0, silent = 2
+  data = d1,
+  family = bernoulli,
+  init = 0, seed = 20260622,
+  chains = 4, warmup = 1000, iter = 3500,
+  refresh = 0, silent = 2
 )
 
-model2 <- brm(outcome ~ arm,
-data = d2,
-family = bernoulli,
-init = 0, seed = 20260622,
-chains = 4, warmup = 1000, iter = 3500,
-refresh = 0, silent = 2
-)
-
-
+model2 <- update(model1, newdata = d2, init = 0, seed = 20260622, chains = 4, warmup = 1000, iter = 3500, refresh = 0, silent = 2)
 ```
 
 
 
 ```{r}
-broom.mixed::tidy(model1)
+broom.mixed::tidy(model1) |>
+  dplyr::select(term, estimate, std.error)
 broom.mixed::tidy(model2)
+```
+
+
+
+```{r}
+mod_definitions <- data.frame(
+  success_a = 5,
+  success_b = 8,
+  success_c = 0:10,
+  n = 10
+)
+
+all_mods <- mod_definitions |>
+  purrr::pmap(make_data) |>
+  purrr::map(function(.d) {
+    update(model1, newdata = .d, init = 0, seed = 20260622, chains = 4, warmup = 1000, iter = 1e6, refresh = 0, silent = 2) |>
+      broom.mixed::tidy()
+  })
+
+mod_results <- all_mods |> purrr::map(
+  function(.d) dplyr::select(.d, term, estimate, std.error, conf.low, conf.high)
+)
+```
+
+
+```{r}
+out <- mod_definitions
+out$x <- mod_results
+
+out <- out |> tidyr::unnest(x)
+```
+
+
+```{r}
+library(ggplot2)
+out |>
+  tidyr::pivot_longer(c(estimate, std.error, conf.low, conf.high)) |>
+  dplyr::filter(term == "armB") |>
+  ggplot(aes(x = success_c, y = value)) +
+  geom_line(aes(color = term)) +
+  facet_wrap(~name, scales = "free")
+```
+
+```{r}
+all_glm_mods <- mod_definitions |>
+  purrr::pmap(make_data) |>
+  purrr::map(function(.d) {
+    glm(outcome ~ arm, data = .d, family = binomial) |> broom::tidy(conf.int = T)
+  }) |>
+  purrr::map(
+    function(.d) dplyr::select(.d, term, estimate, std.error, conf.low, conf.high)
+  )
 ```
