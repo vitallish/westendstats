@@ -11,7 +11,7 @@ When I was recently analyzing cutoff points for a three arm study, I noticed tha
 
 This was specifically occurring with a Bayesian regression model (fit using `brms` but confirmed with `rJAGS`). It also does not seem to be an issue with frequentist models. 
 
-In this case, there was no explicitly modeled correlation between the parameter estimates of treatment A or B. Nevertheless, something seems to be going on that influences the estimate. 
+In this case, there was no explicitly modeled correlation between the parameter estimates of treatment A, B or C. Nevertheless, something seems to be going on that influences the estimate. 
 
 This post will first showcase the issue with some toy datasets and then attempt to characterize the problem more generally. In the end, I'm not sure what the solution is - other to keep it in mind when designing trials.
 
@@ -20,8 +20,7 @@ This post will first showcase the issue with some toy datasets and then attempt 
 
 ## Data Description
 
-The function below creates  a dataframe with `n = 10` subject per arm. The inputs allow the user to specify how many subjects are successes in this trial. The first `x` subjects of each arm will be successes - while the rest will be failures.
-
+The function below creates  a data.frame with `n = 10` subject per arm. The inputs allow the user to specify how many subjects are successes in this trial. The first `x` subjects of each arm will be successes - while the rest will be failures.
 
 ```{r}
 n <- 10
@@ -44,7 +43,6 @@ make_data <- function(success_a, success_b, success_c, n) {
   )
 }
 
-
 d1 <- make_data(5, 8, 5, n = 10)
 d2 <- make_data(5, 8, 8, n = 10)
 ```
@@ -54,7 +52,11 @@ d2 <- make_data(5, 8, 8, n = 10)
 ```{r}
 library(flextable)
 
-joined_data <- d1 |> dplyr::left_join(d2, by = c("id", "arm"), suffix = c(".d1", ".d2"))
+joined_data <- d1 |>
+  dplyr::left_join(d2,
+    by = c("id", "arm"),
+    suffix = c(".d1", ".d2")
+  )
 
 diff_rows <- which(joined_data$outcome.d1 != joined_data$outcome.d2)
 
@@ -90,8 +92,6 @@ summary_table |>
 ```
 
 
-
-
 If you received this data and were asked to characterize the treatment effect between Arm A and Arm B - would you expect the same answer? IN both cases there rate of success in A is 50%, while the rate of success is 80% in Arm B. 
 
 ## Frequentist Logistic Regression
@@ -116,7 +116,10 @@ tbl_d2 <- glm(outcome ~ arm, data = d2, family = binomial) |>
   )
 
 
-gtsummary::tbl_merge(list(tbl_d1, tbl_d2), tab_spanner = c("D1", "D2"))
+gtsummary::tbl_merge(
+  list(tbl_d1, tbl_d2),
+  tab_spanner = c("D1", "D2")
+)
 ```
 
 Not in both cases, the estimate for Arm B is exactly the same - as expected. I've reported everything out to three digits just to really showcase this point.
@@ -124,35 +127,103 @@ Not in both cases, the estimate for Arm B is exactly the same - as expected. I'v
 
 ## Bayesian Model
 
+The following code fits the same model, but the `brms` package to fit the model. Note that the two models are made as similar as possible - using the same `seed` and same `init` values.
 
 ```{r}
 library(brms)
 ```
 
 
-However, with a Bayesian logistic regression model you get different estimates for armC
-
-
 ```{r}
+init <- 0
+seed <- 20260622
+chains <- 4
+warmup <- 1000
+iter <- 1e6
+
+
 model1 <- brm(outcome ~ arm,
   data = d1,
   family = bernoulli,
-  init = 0, seed = 20260622,
-  chains = 4, warmup = 1000, iter = 3500,
+  init = init, seed = seed,
+  chains = chains, warmup = warmup, iter = iter,
   refresh = 0, silent = 2
 )
+# model1
+# update(model1,
+#   newdata = dplyr::sample_frac(d1),
+#   init = init, seed = seed, chains = chains, warmup = warmup, iter = iter, refresh = 0, silent = 2
+# )
 
-model2 <- update(model1, newdata = d2, init = 0, seed = 20260622, chains = 4, warmup = 1000, iter = 3500, refresh = 0, silent = 2)
+
+model2 <- update(model1,
+  newdata = d2,
+  init = init, seed = seed, chains = chains, warmup = warmup, iter = iter, refresh = 0, silent = 2
+)
 ```
 
 
+In the table below you see that there are small differences in the estimate for Arm B. The difference is very small, but if for whatever reason, your current cutoff for trial success was based on the credible bound being below of 3.85, D1 would be considered a failure while D2 would be a success.
 
 ```{r}
-broom.mixed::tidy(model1) |>
-  dplyr::select(term, estimate, std.error)
-broom.mixed::tidy(model2)
+
+brms_tbl_d1 <- model1 |>
+  gtsummary::tbl_regression(
+    estimate_fun = gtsummary::label_style_number(digits = 3),
+    pvalue_fun = gtsummary::label_style_pvalue(digits = 3)
+  ) |>
+  # gtsummary complains about applying to a brms model
+  suppressMessages()
+
+
+brms_tbl_d2 <- model2 |>
+  gtsummary::tbl_regression(
+    estimate_fun = gtsummary::label_style_number(digits = 3),
+    pvalue_fun = gtsummary::label_style_pvalue(digits = 3)
+  ) |>
+  suppressMessages()
+
+
+gtsummary::tbl_merge(
+  list(brms_tbl_d1, brms_tbl_d2),
+  tab_spanner = c("D1", "D2")
+)
 ```
 
+The example above had a very large number of samples drawn from the posterior - almost 4 million. The reason for this was to cut down on sampling error when estimating something like the 95% credible interval.
+
+In order to get a sense of the sampling error in this model - we can bootstrap the estimate of the upper 95% confidence interval:
+
+```{r}
+set.seed(20260629)
+all_b_draws <- model2 |>
+  brms::as_draws(variable = "b_armB") |>
+  unlist(use.names = F)
+
+upper_95_boot <- function(x, idx) {
+  if (!is.null(idx)) {
+    x <- x[idx]
+  }
+  quantile(x, .975)
+}
+
+boot_out <- boot::boot(all_b_draws, upper_95_boot, R = 100)
+boot_out
+```
+
+
+The above shows that the standard error is is approximately .002. While we see a difference at the second decimal point in the table from the models on the 95% interval, the standard error from the draws is smaller than that - suggesting a possible true difference - not just sampling.
+
+This is a rough approximation, but does suggest that 4 million posterior samples is sufficient.
+
+
+# Further Exploration
+
+## The Effect of Different Number of Success in arm C
+
+The following sections tries to understand if there is a pattern to how this difference manifests itself. The estimate will be applied across difference numbers of success in Arm C, from 0 to 10. 
+
+Is there a systemic difference or does it randomly jump around?
 
 
 ```{r}
@@ -166,7 +237,7 @@ mod_definitions <- data.frame(
 all_mods <- mod_definitions |>
   purrr::pmap(make_data) |>
   purrr::map(function(.d) {
-    update(model1, newdata = .d, init = 0, seed = 20260622, chains = 4, warmup = 1000, iter = 1e6, refresh = 0, silent = 2) |>
+    update(model1, newdata = .d, init = init, seed = seed, chains = chains, warmup = warmup, iter = iter, refresh = 0, silent = 2) |>
       broom.mixed::tidy()
   })
 
@@ -183,6 +254,8 @@ out$x <- mod_results
 out <- out |> tidyr::unnest(x)
 ```
 
+
+The plot below shows  there there is a clear pattern to the various estimates. The point estimate, standard error and both ends of the credible interval all appear to go down as the number of successes in arm C goes up. 
 
 ```{r}
 library(ggplot2)
@@ -204,3 +277,18 @@ all_glm_mods <- mod_definitions |>
     function(.d) dplyr::select(.d, term, estimate, std.error, conf.low, conf.high)
   )
 ```
+
+
+# Discussion
+
+It's not entirely clear what is to be done about this situation. I don't think it's ideal because you shouldn't have to fit a sub-model, excluding one arm's data in order to get consistent effects for the other arm. 
+
+It doesn't look like using improper priors fixes the issues
+
+In general, one of my favorite parts of Bayesian analysis is the ability to define the precise structure of the parameters and how they should effect each other. Unfortunately, this example shows that there may be hidden correlations that were surprising
+
+
+## Next Steps
+
+An obvious next step would be to confirm that this happens outside of `brms`. While I did some light confirmation with rJAGS I'm not familiar enough with it to feel like I kicked the tires enough. I could write more specific bespoke code for Stan, but it's unclear if this is a Stan issue or not.
+
