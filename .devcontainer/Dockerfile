@@ -3,8 +3,8 @@ FROM westendstatistics/rstats-dev:${RSTATS_DEV_TAG} AS base
 
 USER root
 # Other packages to install - move away from dev when ready
-# RUN install2.r --error \
-# mice
+RUN install2.r --error \
+  broom.helpers
 
 ARG RSTATS_DEV_TAG
 ENV RSTATS_DEV_TAG="${RSTATS_DEV_TAG}"

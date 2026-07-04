@@ -9,3 +9,4 @@ upload_script.R
 /_site/
 /.vscode/
 **/*.quarto_ipynb
+/.cache/

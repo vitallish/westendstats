@@ -1,0 +1,355 @@
+---
+title: "Bayesian Logistic Regression"
+author: "Vitaly Druker"
+date: "2026-07-03"
+categories: [R, logistic regression, bayesian]
+---
+
+# Introduction {#sec-intro}
+
+When I was recently analyzing cutoff points for a three-arm study, I noticed that the treatment effect in one arm (Arm B) as compared to control (Arm A) was affected by the performance of how subjects did in a third arm (Arm C). This was specifically in a logistic regression situation where we don't have any nuisance variability parameters that could affect the estimates. This was surprising!
+
+This was specifically occurring with a Bayesian regression model (fit using `brms` but confirmed with `rJAGS`). It also does not seem to be an issue with frequentist models.
+
+In this case, there was no explicitly modeled correlation between the parameter estimates of treatment A, B, or C. Nevertheless, something seems to be going on that influences the estimate.
+
+This post will first showcase the issue with some toy datasets and then attempt to characterize the problem more generally. In the end, I'm not sure what the solution is — other than to keep it in mind when designing trials.
+
+
+# Example {#sec-example}
+
+```{r}
+#| label: setup
+#| message: false
+#| warning: false
+
+library(ggplot2)
+library(brms)
+library(flextable)
+theme_set(theme_bw())
+```
+
+
+## Data Description {#sec-data}
+
+The function below creates a data.frame with `n = 10` subjects per arm. The inputs allow the user to specify how many subjects are successes in this trial. The first `x` subjects of each arm will be successes — while the rest will be failures.
+
+```{r}
+#| label: data-functions
+
+n <- 10
+
+success_vector <- function(x, n) {
+  c(rep(1, x), rep(0, n - x))
+}
+
+make_data <- function(success_a, success_b, success_c, n) {
+  data.frame(
+    id = seq(1, n * 3),
+    arm = rep(c("A", "B", "C"), each = n),
+    outcome = c(
+      success_vector(success_a, n),
+      success_vector(success_b, n),
+      success_vector(success_c, n)
+    )
+  )
+}
+
+d1 <- make_data(5, 8, 5, n = 10)
+d2 <- make_data(5, 8, 8, n = 10)
+```
+
+`d1` and `d2` only differ in the number of successes in Arm C, as you can see in @tbl-comparison. The cells highlighted in light blue are the only ones that differ between the two datasets.
+
+```{r}
+#| label: tbl-comparison
+#| tbl-cap: "Subject-level outcomes for d1 and d2. Highlighted rows differ between datasets."
+
+joined_data <- d1 |>
+  dplyr::left_join(d2, by = c("id", "arm"), suffix = c(".d1", ".d2"))
+
+diff_rows <- which(joined_data$outcome.d1 != joined_data$outcome.d2)
+
+joined_data |>
+  flextable() |>
+  bg(i = diff_rows, bg = "#d4edf0", part = "body") |>
+  autofit()
+```
+
+@tbl-arm-summary confirms this — the success rate in Arm C is the only one that differs between `d1` and `d2`.
+
+```{r}
+#| label: tbl-arm-summary
+#| tbl-cap: "Success rates by arm for d1 and d2. The highlighted row is the only one that differs."
+
+summary_table <- dplyr::bind_rows(
+  d1 |> dplyr::mutate(dataset = "d1"),
+  d2 |> dplyr::mutate(dataset = "d2")
+) |>
+  dplyr::group_by(dataset, arm) |>
+  dplyr::summarise(
+    n         = dplyr::n(),
+    successes = sum(outcome),
+    rate      = successes / n,
+    .groups   = "drop"
+  ) |>
+  tidyr::pivot_wider(names_from = dataset, values_from = c(successes, rate))
+
+rate_diff_rows <- which(summary_table$rate_d1 != summary_table$rate_d2)
+
+summary_table |>
+  flextable() |>
+  set_header_labels(
+    arm          = "Arm",
+    n            = "N",
+    successes_d1 = "Successes (d1)",
+    successes_d2 = "Successes (d2)",
+    rate_d1      = "Rate (d1)",
+    rate_d2      = "Rate (d2)"
+  ) |>
+  colformat_double(j = c("rate_d1", "rate_d2"), digits = 2) |>
+  bg(i = rate_diff_rows, bg = "#d4edf0", part = "body") |>
+  autofit()
+```
+
+If you received this data and were asked to characterize the treatment effect between Arm A and Arm B — would you expect the same answer? In both cases the rate of success in Arm A is `r sprintf("%.0f%%", mean(d1$outcome[d1$arm == "A"]) * 100)`, while the rate of success is `r sprintf("%.0f%%", mean(d1$outcome[d1$arm == "B"]) * 100)` in Arm B.
+
+## Frequentist Logistic Regression {#sec-frequentist}
+
+With a logistic regression model you get an estimate of the odds ratio from the parameters — but you would still expect the same value from both datasets.
+
+This is precisely what happens, as shown in @tbl-frequentist:
+
+```{r}
+#| label: tbl-frequentist
+#| tbl-cap: "Frequentist logistic regression estimates for d1 and d2. The Arm B estimate is identical across datasets."
+
+tbl_d1 <- glm(outcome ~ arm, data = d1, family = binomial) |>
+  gtsummary::tbl_regression(
+    estimate_fun = gtsummary::label_style_number(digits = 3),
+    pvalue_fun   = gtsummary::label_style_pvalue(digits = 3)
+  )
+
+tbl_d2 <- glm(outcome ~ arm, data = d2, family = binomial) |>
+  gtsummary::tbl_regression(
+    estimate_fun = gtsummary::label_style_number(digits = 3),
+    pvalue_fun   = gtsummary::label_style_pvalue(digits = 3)
+  )
+
+gtsummary::tbl_merge(
+  list(tbl_d1, tbl_d2),
+  tab_spanner = c("D1", "D2")
+)
+```
+
+In both cases the estimate for Arm B is exactly the same — as expected. Results are reported to three digits to emphasize this.
+
+
+## Bayesian Model {#sec-bayesian-model}
+
+The following code fits the same model using the `brms` package. The two models are made as similar as possible — using the same `seed` and `init` values.
+
+```{r}
+#| label: model-params
+
+init <- 0
+seed <- 20260622
+chains <- 4
+warmup <- 1000
+iter <- 1e6
+```
+
+```{r}
+#| label: fit-bayesian-models
+
+model1 <- brm(
+  outcome ~ arm,
+  data = d1,
+  family = bernoulli,
+  init = init, seed = seed,
+  chains = chains, warmup = warmup, iter = iter,
+  refresh = 0, silent = 2
+)
+
+model2 <- update(
+  model1,
+  newdata = d2,
+  init = init, seed = seed,
+  chains = chains, warmup = warmup, iter = iter,
+  refresh = 0, silent = 2
+)
+```
+
+```{r}
+#| label: arm-b-ci
+#| echo: false
+
+arm_b_ci <- dplyr::bind_rows(
+  broom.mixed::tidy(model1, conf.int = TRUE) |> dplyr::mutate(dataset = "D1"),
+  broom.mixed::tidy(model2, conf.int = TRUE) |> dplyr::mutate(dataset = "D2")
+) |>
+  dplyr::filter(term == "armB") |>
+  dplyr::mutate(dplyr::across(c(estimate, conf.low, conf.high)))
+```
+
+In @tbl-bayesian you can see small differences in the estimate for Arm B. The upper bound of the 95% credible interval (log OR) is `r round(arm_b_ci$conf.high[arm_b_ci$dataset == "D1"], 3)` for D1 and `r round(arm_b_ci$conf.high[arm_b_ci$dataset == "D2"], 3)` for D2. If a trial's success criterion were defined as that bound falling below a threshold between these two values, D1 would be considered a failure while D2 would be a success — despite having identical data in Arms A and B.
+
+```{r}
+#| label: tbl-bayesian
+#| tbl-cap: "Bayesian logistic regression estimates for d1 and d2. Small differences in Arm B's credible interval are visible."
+
+brms_tbl_d1 <- model1 |>
+  gtsummary::tbl_regression(
+    estimate_fun = gtsummary::label_style_number(digits = 3),
+    pvalue_fun   = gtsummary::label_style_pvalue(digits = 3)
+  ) |>
+  # gtsummary complains about using a brms model but it works fine
+  suppressMessages()
+
+brms_tbl_d2 <- model2 |>
+  gtsummary::tbl_regression(
+    estimate_fun = gtsummary::label_style_number(digits = 3),
+    pvalue_fun   = gtsummary::label_style_pvalue(digits = 3)
+  ) |>
+  suppressMessages()
+
+gtsummary::tbl_merge(
+  list(brms_tbl_d1, brms_tbl_d2),
+  tab_spanner = c("D1", "D2")
+)
+```
+
+These models drew `r format(chains * (iter - warmup), big.mark = ",")` posterior samples in total, which reduces sampling error when estimating quantities like the 95% credible interval.
+
+To quantify the sampling error, we can bootstrap the upper bound of the 95% credible interval for Arm B:
+
+```{r}
+#| label: boot-se
+
+set.seed(20260629)
+
+all_b_draws <- model2 |>
+  brms::as_draws(variable = "b_armB") |>
+  unlist(use.names = FALSE)
+
+upper_95_boot <- function(x, idx) {
+  if (!is.null(idx)) x <- x[idx]
+  quantile(x, 0.975)
+}
+
+boot_out <- boot::boot(all_b_draws, upper_95_boot, R = 100)
+boot_out
+```
+
+The bootstrap standard error of the upper 95% bound is approximately `r sprintf("%.3f", sd(boot_out$t))`. Since the difference between D1 and D2 visible in @tbl-bayesian is larger than this standard error, the discrepancy is unlikely to be sampling noise.
+
+
+# Further Exploration {#sec-further}
+
+## The Effect of Different Numbers of Successes in Arm C {#sec-arm-c}
+
+The following section tries to understand if there is a pattern to how this difference manifests. Models are fit across all possible numbers of successes in Arm C, from 0 to 10.
+
+Is there a systematic difference, or does it randomly jump around?
+
+```{r}
+#| label: sweep-definitions
+
+mod_definitions <- data.frame(
+  success_a = 5,
+  success_b = 8,
+  success_c = 0:10,
+  n         = 10
+)
+```
+
+```{r}
+#| label: sweep-mods
+# Cached via memoise; clear here::here(".cache") to force a re-run.
+# Note: cache key is the data frame argument only — clear the cache if
+# model1, iter, chains, warmup, or seed change.
+.fit_mod <- memoise::memoise(
+  function(.d) {
+    update(
+      model1,
+      newdata = .d,
+      init = init, seed = seed,
+      chains = chains, warmup = warmup, iter = iter,
+      refresh = 0, silent = 2
+    ) |>
+      broom.mixed::tidy()
+  },
+  cache = cachem::cache_disk(here::here(".cache"))
+)
+
+all_mods <- mod_definitions |>
+  purrr::pmap(make_data) |>
+  purrr::map(.fit_mod)
+
+mod_results <- all_mods |>
+  purrr::map(function(.d) dplyr::select(.d, term, estimate, std.error, conf.low, conf.high))
+```
+
+```{r}
+#| label: sweep-results
+out <- mod_definitions
+out$x <- mod_results
+out <- out |> tidyr::unnest(x)
+```
+
+@fig-arm-c-effect shows a clear, systematic pattern: the point estimate, standard error, and both bounds of the credible interval for Arm B all decrease as the number of successes in Arm C increases. This is in direct contrast with @fig-glm-sweep where the GLM has consistent values across all successes in Arm C.
+
+```{r}
+#| label: fig-arm-c-effect
+#| fig-cap: "Effect of the number of successes in Arm C on Arm B parameter estimates across Bayesian models."
+
+out |>
+  tidyr::pivot_longer(c(estimate, std.error, conf.low, conf.high)) |>
+  dplyr::filter(term == "armB") |>
+  ggplot(aes(x = success_c, y = value)) +
+  geom_line() +
+  facet_wrap(~name, scales = "free")
+```
+
+```{r}
+#| label: glm-sweep
+
+# GLM has issues fitting when 0 or 10 successes in Arm C
+out_glm <- mod_definitions |>
+  subset(success_c > 0 & success_c < 10)
+
+all_glm_mods <- out_glm |>
+  purrr::pmap(make_data) |>
+  purrr::map(function(.d) {
+    glm(outcome ~ arm, data = .d, family = binomial) |>
+      broom::tidy(conf.int = TRUE)
+  }) |>
+  purrr::map(
+    function(.d) dplyr::select(.d, term, estimate, std.error, conf.low, conf.high)
+  )
+
+out_glm$x <- all_glm_mods
+out_glm <- out_glm |> tidyr::unnest(x)
+```
+
+```{r}
+#| label: fig-glm-sweep
+#| fig-cap: "Conversely, the estimates do not vary when using a GLM."
+out_glm |>
+  tidyr::pivot_longer(c(estimate, std.error, conf.low, conf.high)) |>
+  dplyr::filter(term == "armB") |>
+  ggplot(aes(x = success_c, y = value)) +
+  geom_line() +
+  facet_wrap(~name, scales = "free")
+```
+
+# Discussion {#sec-discussion}
+
+It's not entirely clear what is to be done about this situation. I don't think it's ideal because you shouldn't have to fit a sub-model, excluding one arm's data in order to get consistent effects for the other arm.
+
+In general, one of my favorite parts of Bayesian analysis is the ability to define the precise structure of the parameters and how they should affect each other. Unfortunately, this example shows that there may be hidden correlations that are surprising.
+
+
+## Next Steps {#sec-next-steps}
+
+An obvious next step would be to confirm that this happens outside of `brms`. While I did some light confirmation with rJAGS I'm not familiar enough with it to feel like I kicked the tires enough. I could write more specific bespoke code for Stan, but it's unclear if this is a Stan issue or not. 
