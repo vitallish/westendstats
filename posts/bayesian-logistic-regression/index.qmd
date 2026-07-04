@@ -189,10 +189,10 @@ arm_b_ci <- dplyr::bind_rows(
   broom.mixed::tidy(model2, conf.int = TRUE) |> dplyr::mutate(dataset = "D2")
 ) |>
   dplyr::filter(term == "armB") |>
-  dplyr::mutate(dplyr::across(c(estimate, conf.low, conf.high), exp))
+  dplyr::mutate(dplyr::across(c(estimate, conf.low, conf.high)))
 ```
 
-In @tbl-bayesian you can see small differences in the estimate for Arm B. The upper bound of the 95% credible interval is `r round(arm_b_ci$conf.high[arm_b_ci$dataset == "D1"], 3)` for D1 and `r round(arm_b_ci$conf.high[arm_b_ci$dataset == "D2"], 3)` for D2. If a trial's success criterion were defined as that bound falling below a threshold between these two values, D1 would be considered a failure while D2 would be a success — despite having identical data in Arms A and B.
+In @tbl-bayesian you can see small differences in the estimate for Arm B. The upper bound of the 95% credible interval (log OR) is `r round(arm_b_ci$conf.high[arm_b_ci$dataset == "D1"], 3)` for D1 and `r round(arm_b_ci$conf.high[arm_b_ci$dataset == "D2"], 3)` for D2. If a trial's success criterion were defined as that bound falling below a threshold between these two values, D1 would be considered a failure while D2 would be a success — despite having identical data in Arms A and B.
 
 ```{r}
 #| label: tbl-bayesian
