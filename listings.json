@@ -2,6 +2,7 @@
   {
     "listing": "/blog.html",
     "items": [
+      "/posts/bayesian-logistic-regression/index.html",
       "/posts/cutting-with-trees/index.html",
       "/posts/estimating-unique-values-in-a-set/index.html",
       "/posts/conditional-mle-variance/index.html"
