@@ -7,7 +7,7 @@ categories: [R, logistic regression, bayesian]
 
 # Introduction {#sec-intro}
 
-When I was recently analyzing cutoff points for a three-arm study, I noticed that the treatment effect in one arm as compared to control (Arm A) was affected by the performance of how subjects did in Arm B. This was specifically in a logistic regression situation where we don't have any nuisance variability parameters that could affect the estimates.
+When I was recently analyzing cutoff points for a three-arm study, I noticed that the treatment effect in one arm (Arm B) as compared to control (Arm A) was affected by the performance of how subjects did in a third arm (Arm C). This was specifically in a logistic regression situation where we don't have any nuisance variability parameters that could affect the estimates. This was surprising!
 
 This was specifically occurring with a Bayesian regression model (fit using `brms` but confirmed with `rJAGS`). It also does not seem to be an issue with frequentist models.
 
@@ -20,7 +20,8 @@ This post will first showcase the issue with some toy datasets and then attempt 
 
 ```{r}
 #| label: setup
-#| output: hide
+#| message: false
+#| warning: false
 
 library(ggplot2)
 library(brms)
@@ -351,4 +352,4 @@ In general, one of my favorite parts of Bayesian analysis is the ability to defi
 
 ## Next Steps {#sec-next-steps}
 
-An obvious next step would be to confirm that this happens outside of `brms`. While I did some light confirmation with rJAGS I'm not familiar enough with it to feel like I kicked the tires enough. I could write more specific bespoke code for Stan, but it's unclear if this is a Stan issue or not.
+An obvious next step would be to confirm that this happens outside of `brms`. While I did some light confirmation with rJAGS I'm not familiar enough with it to feel like I kicked the tires enough. I could write more specific bespoke code for Stan, but it's unclear if this is a Stan issue or not. 
