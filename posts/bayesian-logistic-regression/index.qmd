@@ -2,6 +2,7 @@
 title: "Bayesian Logistic Regression"
 author: "Vitaly Druker"
 date: "2026-07-03"
+modified: "2026-07-09"
 categories: [R, logistic regression, bayesian]
 ---
 
@@ -55,7 +56,7 @@ make_data <- function(success_a, success_b, success_c, n) {
   )
 }
 
-d1 <- make_data(5, 8, 5, n = 10)
+d1 <- make_data(5, 8, 2, n = 10)
 d2 <- make_data(5, 8, 8, n = 10)
 ```
 
@@ -157,19 +158,20 @@ seed <- 20260622
 chains <- 4
 warmup <- 1000
 iter <- 1e6
+cores <- 4
 ```
 
 ```{r}
 #| label: fit-bayesian-models
-
 model1 <- brm(
   outcome ~ arm,
   data = d1,
   family = bernoulli,
   init = init, seed = seed,
+  cores = cores,
   chains = chains, warmup = warmup, iter = iter,
   refresh = 0, silent = 2
-)
+  )
 
 model2 <- update(
   model1,
@@ -267,14 +269,15 @@ mod_definitions <- data.frame(
 #| label: sweep-mods
 # Cached via memoise; clear here::here(".cache") to force a re-run.
 # Note: cache key is the data frame argument only — clear the cache if
-# model1, iter, chains, warmup, or seed change.
+# iter, chains, warmup, or seed change.
 .fit_mod <- memoise::memoise(
-  function(.d) {
+  function(.d, .model, iter) {
     update(
-      model1,
+      object = .model,
       newdata = .d,
       init = init, seed = seed,
       chains = chains, warmup = warmup, iter = iter,
+      cores = cores,
       refresh = 0, silent = 2
     ) |>
       broom.mixed::tidy()
@@ -284,7 +287,7 @@ mod_definitions <- data.frame(
 
 all_mods <- mod_definitions |>
   purrr::pmap(make_data) |>
-  purrr::map(.fit_mod)
+  purrr::map(.fit_mod, .model = model1, iter = iter)
 
 mod_results <- all_mods |>
   purrr::map(function(.d) dplyr::select(.d, term, estimate, std.error, conf.low, conf.high))
@@ -343,7 +346,79 @@ out_glm |>
   facet_wrap(~name, scales = "free")
 ```
 
+
+## Different Priors {#sec-different-priors}
+
+> Section was added on 2026-09-28
+
+Due to some discussion (online)[https://fosstodon.org/@vitaly_druker/116859407619049219], I got a good tip on how to set the intercept prior to also be flat.
+
+The default priors for `brms` are as follows:
+
+```{r}
+brms::prior_summary(model1)
+```
+
+You can see that the default prior on the intercept is `student_t(3, 0, 2.5)` prior.
+
+
+```{r}
+#TODO: add a visualization comparing a student_t(3,0,2.5) and normal(0, 25)
+```
+
+
+```{r}
+# Updated 2026-07-09 to force a flat prior on the intercept to better mimic glm
+# forcing a flat prior did not work well though - lots of sampler issues so I did a very wide normal
+priors <- prior("normal(0, 25)", class = "Intercept") +
+  prior("", class = "b")
+
+model1_flat <- brm(
+  outcome ~ arm,
+  data = d1,
+  prior = priors,
+  family = bernoulli,
+  init = init, seed = seed,
+  cores = cores,
+  chains = chains, warmup = warmup, iter = iter,
+  refresh = 0, silent = 2
+)
+```
+
+```{r}
+all_mods_flat <- mod_definitions |>
+  purrr::pmap(make_data) |>
+  purrr::map(.fit_mod, .model = model1_flat, iter = iter)
+
+mod_results_flat <- all_mods_flat |>
+  purrr::map(function(.d) dplyr::select(.d, term, estimate, std.error, conf.low, conf.high))
+```
+
+```{r}
+#| label: sweep-results-flat
+out_flat <- mod_definitions
+out_flat$x <- mod_results_flat
+out_flat <- out_flat |> tidyr::unnest(x)
+```
+
+@fig-arm-c-effect-flat  shows that adding a 'flatter' prior on the intercept seems to greatly reduce the patterns seen in @fig-arm-c-effect. 
+
+```{r}
+#| label: fig-arm-c-effect-flat
+#| fig-cap: "Effect of the number of successes in Arm C on Arm B parameter estimates across Bayesian models."
+
+out_flat |>
+  tidyr::pivot_longer(c(estimate, std.error, conf.low, conf.high)) |>
+  dplyr::filter(term == "armB") |>
+  ggplot(aes(x = success_c, y = value)) +
+  geom_line() +
+  facet_wrap(~name, scales = "free")
+```
+
+
 # Discussion {#sec-discussion}
+
+ > Update: 2026-09-28. It looks like there may be a solution, choosing a flatter prior for the intercept seems to mitigate some of these issues. However, it's not entirely clear to me why this is the case.
 
 It's not entirely clear what is to be done about this situation. I don't think it's ideal because you shouldn't have to fit a sub-model, excluding one arm's data in order to get consistent effects for the other arm.
 

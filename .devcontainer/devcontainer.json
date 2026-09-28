@@ -18,7 +18,10 @@
 				"muhammad-ahmad.xlsx-viewer",
 				"GitHub.vscode-pull-request-github",
 				"anthropic.claude-code"
-			]
+			],
+			"settings": {
+				"r.plot.backend": "jgd"
+			}
 		}
 	}
 }
