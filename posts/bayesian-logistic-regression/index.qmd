@@ -2,7 +2,7 @@
 title: "Bayesian Logistic Regression"
 author: "Vitaly Druker"
 date: "2026-07-03"
-modified: "2026-09-28"
+date-modified: "2026-09-28"
 categories: [R, logistic regression, bayesian]
 ---
 
